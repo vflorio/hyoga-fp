@@ -2,7 +2,7 @@ import { createLogger, type LogLevel } from "@hyoga-fp/core";
 import { createPlayerFrom, type FreewheelConfig, type Player, type SDK, type VideoPlayer } from "@hyoga-fp/freewheel";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { match } from "ts-pattern";
-import { config } from "./main";
+import { config } from "./env";
 import { type ButtonPhase, PlayerUI } from "./PlayerUI";
 
 const fromVideoElement = (videoEl: HTMLVideoElement): VideoPlayer => ({
