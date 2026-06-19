@@ -4,5 +4,6 @@ export * as IORef from "fp-ts/IORef";
 export * as O from "fp-ts/Option";
 export * as RA from "fp-ts/ReadonlyArray";
 export * as T from "fp-ts/Task";
-export * from "./freewheel";
+
+export type * from "./freewheel";
 export * from "./player";

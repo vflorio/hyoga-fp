@@ -6,8 +6,7 @@ export const formatTime = (seconds: number) => {
 };
 
 // Format bandwidth in Mbps
-export const formatBandwidth = (bps: number) =>
-  `${(bps / 1_000_000).toFixed(1)} Mbps`;
+export const formatBandwidth = (bps: number) => `${(bps / 1_000_000).toFixed(1)} Mbps`;
 
 // Format bytes in a human-readable format
 export const formatBytes = (bytes: number): string => {

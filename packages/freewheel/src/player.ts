@@ -60,7 +60,10 @@ export const createPlayer = (deps: PlayerDeps): Player => {
       logger.info(`playing content (resuming at ${startAt}s)`),
       IO.flatMap(() =>
         stateRef.modify(
-          flow(Transitions.setPhase({ _tag: "Content" }), (state) => ({ ...state, currentSlot: O.none })),
+          flow(Transitions.setPhase({ _tag: "Content" }), (state) => ({
+            ...state,
+            currentSlot: O.none,
+          })),
         ),
       ),
       IO.flatMap(() => video.enableControls),
@@ -266,7 +269,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
   // called when the user clicks Play for the first time
   // TODO: Confrontare con quelle di Hyoga
   const requestAds: T.Task<void> = pipe(
-    // configure the ad context and register SDK-level listeners (IO -> Task)
+    // configure the ad context and register SDK-level listeners
     T.fromIO(() => {
       // TODO: Docs
       adContext.addTemporalSlot("Preroll_1", SDK.ADUNIT_PREROLL, 0);

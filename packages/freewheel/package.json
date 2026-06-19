@@ -23,7 +23,8 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "test": "vitest run"
   },
   "type": "module",
   "types": "./dist/index.d.ts",
