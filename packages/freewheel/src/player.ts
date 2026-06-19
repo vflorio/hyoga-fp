@@ -13,8 +13,14 @@ export interface VideoPlayer {
   readonly seek: (src: string, at: number) => IO.IO<void>;
   readonly enableControls: IO.IO<void>;
   readonly getSrc: IO.IO<string>;
-  readonly on: (event: "timeupdate" | "ended", handler: () => void) => IO.IO<void>;
-  readonly off: (event: "timeupdate" | "ended", handler: () => void) => IO.IO<void>;
+  readonly on: (
+    event: "timeupdate" | "ended",
+    handler: () => void,
+  ) => IO.IO<void>;
+  readonly off: (
+    event: "timeupdate" | "ended",
+    handler: () => void,
+  ) => IO.IO<void>;
 }
 
 export interface PlayerDeps {
@@ -42,7 +48,9 @@ export const createPlayer = (deps: PlayerDeps): Player => {
 
   const videoSrc = video.getSrc();
 
-  const stateRef = IORef.newIORef<Model.PlayerState>(Model.createInitialState(videoSrc))();
+  const stateRef = IORef.newIORef<Model.PlayerState>(
+    Model.createInitialState(videoSrc),
+  )();
 
   const addVideoListeners: IO.IO<void> = () => {
     video.on("timeupdate", onTimeUpdate)();
@@ -60,7 +68,10 @@ export const createPlayer = (deps: PlayerDeps): Player => {
       logger.info(`playing content (resuming at ${startAt}s)`),
       IO.flatMap(() =>
         stateRef.modify(
-          flow(Transitions.setPhase({ _tag: "Content" }), (state) => ({ ...state, currentSlot: O.none })),
+          flow(Transitions.setPhase({ _tag: "Content" }), (state) => ({
+            ...state,
+            currentSlot: O.none,
+          })),
         ),
       ),
       IO.flatMap(() => video.enableControls),
@@ -118,7 +129,10 @@ export const createPlayer = (deps: PlayerDeps): Player => {
             .with(SDK.TIME_POSITION_CLASS_PREROLL, () => playPreroll)
             .with(SDK.TIME_POSITION_CLASS_POSTROLL, () => playPostroll)
             .with(SDK.TIME_POSITION_CLASS_MIDROLL, () => restoreAfterMidroll)
-            .with(SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL, () => restoreAfterPauseMidroll)
+            .with(
+              SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL,
+              () => restoreAfterPauseMidroll,
+            )
             .otherwise(() => constVoid),
       ),
     )();
@@ -131,7 +145,9 @@ export const createPlayer = (deps: PlayerDeps): Player => {
         .with({ _tag: "Midroll" }, () =>
           pipe(
             logger.info(`resuming content at ${state.contentPausedOn}s`),
-            IO.flatMap(() => playContent(state.contentSrc, state.contentPausedOn)),
+            IO.flatMap(() =>
+              playContent(state.contentSrc, state.contentPausedOn),
+            ),
           ),
         )
         .otherwise(() => constVoid),
@@ -151,7 +167,9 @@ export const createPlayer = (deps: PlayerDeps): Player => {
         // ensure we're in Content phase
         match(state.phase)
           .with({ _tag: "Content" }, () => constVoid)
-          .otherwise(() => stateRef.modify(Transitions.setPhase({ _tag: "Content" }))),
+          .otherwise(() =>
+            stateRef.modify(Transitions.setPhase({ _tag: "Content" })),
+          ),
 
         IO.flatMap(() => video.seek(state.contentSrc, resumeAt)),
         IO.flatMap(() => addVideoListeners),
@@ -191,12 +209,16 @@ export const createPlayer = (deps: PlayerDeps): Player => {
           IO.flatMap((time) => {
             const overlay = pipe(
               state.overlaySlots,
-              RA.findFirst((slot) => Math.abs(slot.getTimePosition() - time) < 0.5),
+              RA.findFirst(
+                (slot) => Math.abs(slot.getTimePosition() - time) < 0.5,
+              ),
             );
 
             const midroll = pipe(
               state.midrollSlots,
-              RA.findFirst((slot) => Math.abs(slot.getTimePosition() - time) < 0.5),
+              RA.findFirst(
+                (slot) => Math.abs(slot.getTimePosition() - time) < 0.5,
+              ),
             );
 
             return (
@@ -212,13 +234,20 @@ export const createPlayer = (deps: PlayerDeps): Player => {
                   pipe(
                     logger.info(`playing midroll (resume at ${time}s)`),
                     IO.flatMap(() => removeVideoListeners),
-                    IO.flatMap(() => stateRef.modify(Transitions.popMidroll(midroll.value, time))),
+                    IO.flatMap(() =>
+                      stateRef.modify(
+                        Transitions.popMidroll(midroll.value, time),
+                      ),
+                    ),
                     IO.flatMap(() => Effects.playSlot(midroll.value)),
                   ),
                 )
-                // optimisation: remove listener when no timed slots remain
+                // optimisation: remove timeupdate listener when no timed slots remain
                 .otherwise(() =>
-                  state.overlaySlots.length === 0 && state.midrollSlots.length === 0 ? removeVideoListeners : constVoid,
+                  state.overlaySlots.length === 0 &&
+                  state.midrollSlots.length === 0
+                    ? video.off("timeupdate", onTimeUpdate)
+                    : constVoid,
                 )
             );
           }),
@@ -233,7 +262,9 @@ export const createPlayer = (deps: PlayerDeps): Player => {
     pipe(
       logger.info("content ended"),
       IO.flatMap(() => video.off("ended", onContentEnded)),
-      IO.flatMap(() => () => adContext.setVideoState(SDK.VIDEO_STATE_COMPLETED)),
+      IO.flatMap(
+        () => () => adContext.setVideoState(SDK.VIDEO_STATE_COMPLETED),
+      ),
       IO.flatMap(() => playPostroll),
     )();
 
@@ -243,8 +274,14 @@ export const createPlayer = (deps: PlayerDeps): Player => {
     stateRef.modify(Transitions.setPhase({ _tag: "Done" })),
     IO.flatMap(() => () => {
       adContext.removeEventListener(SDK.EVENT_SLOT_ENDED, onSlotEnded);
-      adContext.removeEventListener(SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST, onContentPauseRequest);
-      adContext.removeEventListener(SDK.EVENT_CONTENT_VIDEO_RESUME_REQUEST, onContentResumeRequest);
+      adContext.removeEventListener(
+        SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST,
+        onContentPauseRequest,
+      );
+      adContext.removeEventListener(
+        SDK.EVENT_CONTENT_VIDEO_RESUME_REQUEST,
+        onContentResumeRequest,
+      );
       adContext.dispose();
     }),
     IO.flatMap(() => onComplete),
@@ -280,10 +317,20 @@ export const createPlayer = (deps: PlayerDeps): Player => {
       // TODO: Docs
       adContext.addKeyValue("skippable", "enabled");
       // TODO: Docs
-      adContext.setParameter("extension.skippableAd.enabled", true, SDK.PARAMETER_LEVEL_GLOBAL);
+      adContext.setParameter(
+        "extension.skippableAd.enabled",
+        true,
+        SDK.PARAMETER_LEVEL_GLOBAL,
+      );
 
-      adContext.addEventListener(SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST, onContentPauseRequest);
-      adContext.addEventListener(SDK.EVENT_CONTENT_VIDEO_RESUME_REQUEST, onContentResumeRequest);
+      adContext.addEventListener(
+        SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST,
+        onContentPauseRequest,
+      );
+      adContext.addEventListener(
+        SDK.EVENT_CONTENT_VIDEO_RESUME_REQUEST,
+        onContentResumeRequest,
+      );
       adContext.addEventListener(SDK.EVENT_SLOT_ENDED, onSlotEnded);
     }),
     // submit and await the response
@@ -298,7 +345,8 @@ export const createPlayer = (deps: PlayerDeps): Player => {
               TIME_POSITION_CLASS_MIDROLL: SDK.TIME_POSITION_CLASS_MIDROLL,
               TIME_POSITION_CLASS_OVERLAY: SDK.TIME_POSITION_CLASS_OVERLAY,
               TIME_POSITION_CLASS_POSTROLL: SDK.TIME_POSITION_CLASS_POSTROLL,
-              TIME_POSITION_CLASS_PAUSE_MIDROLL: SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL,
+              TIME_POSITION_CLASS_PAUSE_MIDROLL:
+                SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL,
             })(slots),
           ),
           IO.flatMap(() => playPreroll),
@@ -311,7 +359,9 @@ export const createPlayer = (deps: PlayerDeps): Player => {
   const pause: IO.IO<void> = pipe(
     stateRef.read,
     IO.flatMap((state): IO.IO<void> => {
-      const hasPauseMidroll = state.pauseMidrollSlots.length > 0 && state.pauseMidrollSlots[0].getAdCount() !== 0;
+      const hasPauseMidroll =
+        state.pauseMidrollSlots.length > 0 &&
+        state.pauseMidrollSlots[0].getAdCount() !== 0;
 
       return (
         match(state.phase)
@@ -324,7 +374,9 @@ export const createPlayer = (deps: PlayerDeps): Player => {
                   IO.flatMap(() =>
                     pipe(
                       video.getCurrentTime,
-                      IO.flatMap((t) => stateRef.modify(Transitions.popPauseMidroll(t))),
+                      IO.flatMap((t) =>
+                        stateRef.modify(Transitions.popPauseMidroll(t)),
+                      ),
                     ),
                   ),
                   IO.flatMap(() => removeVideoListeners),

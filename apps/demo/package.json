@@ -11,6 +11,7 @@
     "ts-pattern": "5.9.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@types/node": "24.10.1",
     "@types/react": "19.2.5",
     "@types/react-dom": "19.2.3",
@@ -28,7 +29,10 @@
     "clean": "rm -rf dist",
     "demo:build": "tsc -b && vite build",
     "demo:dev": "vite",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:capture": "playwright test e2e/capture.spec.ts --headed"
   },
   "type": "module"
 }

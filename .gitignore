@@ -24,5 +24,13 @@ dist-ssr
 *.old.*
 *.old
 .turbo
+
+# Vendored third-party SDKs (downloaded locally, not committed)
+.vendor/
+
+# E2E test artifacts
+apps/demo/e2e/fixtures/ad-response.xml
+test-results/
+playwright-report/
 .github
 *:Zone.Identifier

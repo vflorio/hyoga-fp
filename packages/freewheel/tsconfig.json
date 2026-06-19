@@ -13,5 +13,5 @@
     "esModuleInterop": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/**/*.old.ts", "src/**/*.old/**"]
+  "exclude": ["node_modules", "dist", "src/**/*.old.ts", "src/**/*.old/**", "src/**/__tests__/**"]
 }

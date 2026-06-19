@@ -1,6 +1,8 @@
 - Unit testing
 - E2E/Storybook
  
+sai cosa? forse scaricare dinamicamente da un url potrebbe esporre a problemi di sicurezza, magari scarica il file una volta sola e mettiamolo in una cartella non committata di git e lasciare le istruzioni nel readme di come/dove scaricare AdManager di FW
+
 Adapter
     Un Adapter porta il supporto ad uno o più tipologie di Source
 
