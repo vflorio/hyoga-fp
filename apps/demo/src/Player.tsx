@@ -1,4 +1,4 @@
-import { createLogger } from "@hyoga-fp/core";
+import { createLogger, type LogLevel } from "@hyoga-fp/core";
 import { createPlayer, type Player, type SDK, type VideoPlayer } from "@hyoga-fp/freewheel";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { match } from "ts-pattern";
@@ -41,7 +41,7 @@ export function FwPlayer() {
     playerRef.current = createPlayer({
       SDK,
       adContext,
-      logger: createLogger("freewheel"),
+      logger: createLogger("freewheel", config.logLevel as LogLevel),
       video: fromVideoElement(videoEl),
       configureContext: () => {
         // Disable US CCPA

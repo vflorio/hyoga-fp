@@ -10,6 +10,7 @@ interface ImportMetaEnv {
   readonly VITE_FW_FALLBACK_SITE_ID: string;
   readonly VITE_FW_VIDEO_CONTAINER: string;
   readonly VITE_FW_DISABLE_AUTO_PAUSE: string;
+  readonly VITE_FW_LOG_LEVEL: string;
 }
 
 interface ImportMeta {

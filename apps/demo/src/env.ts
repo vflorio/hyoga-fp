@@ -22,9 +22,7 @@ const IntFromString = new t.Type<number, string, unknown>(
   (u, c) => {
     if (typeof u !== "string") return t.failure(u, c);
     const n = Number(u);
-    return Number.isNaN(n) || !Number.isInteger(n)
-      ? t.failure(u, c, "expected integer string")
-      : t.success(n);
+    return Number.isNaN(n) || !Number.isInteger(n) ? t.failure(u, c, "expected integer string") : t.success(n);
   },
   String,
 );
@@ -41,6 +39,13 @@ const EnvCodec = t.type({
   VITE_FW_FALLBACK_SITE_ID: IntFromString,
   VITE_FW_VIDEO_CONTAINER: t.string,
   VITE_FW_DISABLE_AUTO_PAUSE: BooleanFromString,
+  VITE_FW_LOG_LEVEL: t.keyof({
+    debug: null,
+    info: null,
+    warning: null,
+    error: null,
+    silent: null,
+  }),
 });
 
 // --- Parse and export ---
@@ -60,9 +65,7 @@ export const config = pipe(
   EnvCodec.decode(import.meta.env),
   E.match(
     (errors) => {
-      throw new Error(
-        `Invalid environment configuration:\n${formatErrors(errors)}`,
-      );
+      throw new Error(`Invalid environment configuration:\n${formatErrors(errors)}`);
     },
     (env) => ({
       networkId: env.VITE_FW_NETWORK_ID,
@@ -74,6 +77,7 @@ export const config = pipe(
       fallbackSiteId: env.VITE_FW_FALLBACK_SITE_ID,
       videoContainer: env.VITE_FW_VIDEO_CONTAINER,
       disableAutoPause: env.VITE_FW_DISABLE_AUTO_PAUSE,
+      logLevel: env.VITE_FW_LOG_LEVEL,
     }),
   ),
 );
