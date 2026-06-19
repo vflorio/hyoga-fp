@@ -1,5 +1,5 @@
 import { createLogger, type LogLevel } from "@hyoga-fp/core";
-import { createPlayer, type Player, type SDK, type VideoPlayer } from "@hyoga-fp/freewheel";
+import { createPlayerFrom, type FreewheelConfig, type Player, type SDK, type VideoPlayer } from "@hyoga-fp/freewheel";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { config } from "./main";
@@ -21,6 +21,28 @@ const fromVideoElement = (videoEl: HTMLVideoElement): VideoPlayer => ({
   off: (event, handler) => () => videoEl.removeEventListener(event, handler),
 });
 
+const freewheelConfig: FreewheelConfig = {
+  profileId: config.profileId,
+  videoAssetId: config.videoAssetId,
+  videoDuration: config.videoDuration,
+  siteSectionId: config.siteSectionId,
+  networkId: config.networkId,
+  fallbackSiteId: config.fallbackSiteId,
+  videoContainer: config.videoContainer,
+  disableAutoPause: config.disableAutoPause,
+  temporalSlots: [
+    { name: "Preroll_1", adUnit: "preroll", timePosition: 0 },
+    { name: "Midroll_1", adUnit: "midroll", timePosition: 6 },
+    { name: "Overlay_1", adUnit: "overlay", timePosition: 10 },
+    { name: "Overlay_2", adUnit: "overlay", timePosition: 20 },
+    { name: "Postroll_1", adUnit: "postroll", timePosition: 120 },
+    { name: "pause_midroll_1", adUnit: "pause_midroll", timePosition: 0 },
+  ],
+  keyValues: [{ key: "skippable", value: "enabled" }],
+};
+
+const makePlayer = createPlayerFrom(freewheelConfig);
+
 export function FwPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<Player | null>(null);
@@ -38,61 +60,24 @@ export function FwPlayer() {
 
     const adContext = adManager.newContext();
 
-    playerRef.current = createPlayer({
+    playerRef.current = makePlayer({
       SDK,
       adContext,
       logger: createLogger("freewheel", config.logLevel as LogLevel),
       video: fromVideoElement(videoEl),
-      configureContext: () => {
-        // Disable US CCPA
-        adContext.setParameter(SDK.PARAMETER_USE_CCPA_USPAPI, false, SDK.PARAMETER_LEVEL_GLOBAL);
-        adContext.setParameter(
-          SDK.PARAMETER_RENDERER_VIDEO_DISPLAY_CONTROLS_WHEN_PAUSE,
-          false,
-          SDK.PARAMETER_LEVEL_GLOBAL,
-        );
-        if (config.disableAutoPause) {
-          adContext.setParameter(SDK.PARAMETER_AUTO_PAUSE_AD_ONVISIBILITYCHANGE, false, SDK.PARAMETER_LEVEL_GLOBAL);
-        }
-        // Increase the maximum number of VAST 302 redirects, required for Google Programmatic
-        adContext.setParameter(SDK.PARAMETER_VAST_MAX_WRAPPER_COUNT, 7, SDK.PARAMETER_LEVEL_OVERRIDE);
-        adContext.setParameter(SDK.PARAMETER_EXTENSION_OMSDK_ENABLED, true, SDK.PARAMETER_LEVEL_GLOBAL);
-
-        adContext.setProfile(config.profileId);
-        adContext.setVideoAsset(
-          config.videoAssetId,
-          config.videoDuration,
-          config.networkId,
-          null,
-          SDK.VIDEO_ASSET_AUTO_PLAY_TYPE_ATTENDED,
-          Math.round(Math.random() * 10000),
-          SDK.ID_TYPE_CUSTOM,
-          "0",
-          SDK.VIDEO_ASSET_DURATION_TYPE_EXACT,
-        );
-        adContext.setSiteSection(
-          config.siteSectionId,
-          config.networkId,
-          Math.round(Math.random() * 10000),
-          SDK.ID_TYPE_CUSTOM,
-          config.fallbackSiteId,
-        );
-
-        // Temporal slots
-        adContext.addTemporalSlot("Preroll_1", SDK.ADUNIT_PREROLL, 0);
-        adContext.addTemporalSlot("Midroll_1", SDK.ADUNIT_MIDROLL, 6);
-        adContext.addTemporalSlot("Overlay_1", SDK.ADUNIT_OVERLAY, 10);
-        adContext.addTemporalSlot("Overlay_2", SDK.ADUNIT_OVERLAY, 20);
-        adContext.addTemporalSlot("Postroll_1", SDK.ADUNIT_POSTROLL, 120);
-        adContext.addTemporalSlot("pause_midroll_1", SDK.ADUNIT_PAUSE_MIDROLL, 0);
-
-        adContext.registerVideoDisplayBase(config.videoContainer);
-        adContext.addKeyValue("skippable", "enabled");
-      },
-      onComplete: () => location.reload(),
+      onComplete: () => {},
       onOverlayShown: () => {
         const element = document.querySelector('[id^="_fw_ad_container_iframe_Overlay_2"]') as HTMLElement | null;
         if (element) element.style.marginBottom = "50px";
+      },
+      onAdBreakStarted: () => {
+        console.log("[demo] Ad break started");
+      },
+      onContentResumed: () => {
+        console.log("[demo] Content resumed");
+      },
+      onAdClick: (url) => () => {
+        console.log(`[demo] Ad clicked, redirecting to: ${url}`);
       },
     });
   }, []);

@@ -69,7 +69,15 @@ export interface EventNames {
   readonly EVENT_CONTENT_VIDEO_PAUSE_REQUEST: string;
   readonly EVENT_CONTENT_VIDEO_RESUME_REQUEST: string;
   readonly EVENT_REQUEST_COMPLETE: string;
+  readonly EVENT_SLOT_STARTED: string;
   readonly EVENT_SLOT_ENDED: string;
+  readonly EVENT_AD_IMPRESSION: string;
+  readonly EVENT_AD_IMPRESSION_END: string;
+  readonly EVENT_AD_FIRST_QUARTILE: string;
+  readonly EVENT_AD_MIDPOINT: string;
+  readonly EVENT_AD_THIRD_QUARTILE: string;
+  readonly EVENT_AD_CLICK: string;
+  readonly EVENT_ERROR: string;
   readonly EVENT_USER_ACTION_NOTIFIED: string;
   readonly EVENT_USER_ACTION_PAUSE_BUTTON_CLICKED: string;
   readonly EVENT_USER_ACTION_RESUME_BUTTON_CLICKED: string;

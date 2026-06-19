@@ -32,6 +32,12 @@ export interface PlayerDeps {
   readonly onComplete: IO.IO<void>;
   // Quando un overlay viene mostrato, così da poter eventualmente spostare il contenuto sottostante
   readonly onOverlayShown: IO.IO<void>;
+  // Chiamata quando inizia un ad break (preroll/midroll/postroll/pause-midroll)
+  readonly onAdBreakStarted: IO.IO<void>;
+  // Chiamata quando il contenuto riprende dopo un ad break
+  readonly onContentResumed: IO.IO<void>;
+  // Chiamata quando l'utente clicca su un ad (es. pause-midroll) e viene reindirizzato all'URL dell'inserzionista
+  readonly onAdClick: (url: string) => IO.IO<void>;
 }
 
 export interface Player {
@@ -41,7 +47,18 @@ export interface Player {
 }
 
 export const createPlayer = (deps: PlayerDeps): Player => {
-  const { adContext, video, SDK, onComplete, onOverlayShown, logger, configureContext } = deps;
+  const {
+    adContext,
+    video,
+    SDK,
+    onComplete,
+    onOverlayShown,
+    logger,
+    configureContext,
+    onAdBreakStarted,
+    onContentResumed,
+    onAdClick,
+  } = deps;
 
   const videoSrc = video.getSrc();
 
@@ -75,6 +92,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
       IO.flatMap(() => video.play),
       IO.flatMap(() => addVideoListeners),
       IO.flatMap(() => () => adContext.setVideoState(SDK.VIDEO_STATE_PLAYING)),
+      IO.flatMap(() => onContentResumed),
       IO.flatMap(() => logger.debug("playContent: videoState → PLAYING, listeners attached")),
     );
 
@@ -122,6 +140,36 @@ export const createPlayer = (deps: PlayerDeps): Player => {
       ),
     ),
   );
+
+  const onSlotStarted = (event: { slot: FreeWheel.AdSlot }): void => {
+    const classId = event.slot.getTimePositionClass();
+    pipe(
+      logger.info(`onSlotStarted: classId=${classId}, adCount=${event.slot.getAdCount()}`),
+      IO.flatMap(() => onAdBreakStarted),
+    )();
+  };
+
+  const onAdImpression = (event: { adInstance?: { getAdId?: () => string } }): void => {
+    const adId = event.adInstance?.getAdId?.() ?? "unknown";
+    logger.debug(`onAdImpression: adId=${adId}`)();
+  };
+
+  const onAdImpressionEnd = (event: { adInstance?: { getAdId?: () => string } }): void => {
+    const adId = event.adInstance?.getAdId?.() ?? "unknown";
+    logger.debug(`onAdImpressionEnd: adId=${adId}`)();
+  };
+
+  const onAdClick_ = (event: { url?: string }): void => {
+    const url = event.url ?? "unknown";
+    pipe(
+      logger.info(`onAdClick: url=${url}`),
+      IO.flatMap(() => onAdClick(url)),
+    )();
+  };
+
+  const onAdError = (event: { errorInfo?: string; errorCode?: string }): void => {
+    logger.error(`onAdError: code=${event.errorCode ?? "?"}, info=${event.errorInfo ?? "?"}`)();
+  };
 
   const onSlotEnded = (event: { slot: FreeWheel.AdSlot }): void => {
     const classId = event.slot.getTimePositionClass();
@@ -316,7 +364,12 @@ export const createPlayer = (deps: PlayerDeps): Player => {
     logger.info("cleanUp: disposing ad context, phase → Done"),
     IO.flatMap(() => stateRef.modify(Transitions.setPhase({ _tag: "Done" }))),
     IO.flatMap(() => () => {
+      adContext.removeEventListener(SDK.EVENT_SLOT_STARTED, onSlotStarted);
       adContext.removeEventListener(SDK.EVENT_SLOT_ENDED, onSlotEnded);
+      adContext.removeEventListener(SDK.EVENT_AD_IMPRESSION, onAdImpression);
+      adContext.removeEventListener(SDK.EVENT_AD_IMPRESSION_END, onAdImpressionEnd);
+      adContext.removeEventListener(SDK.EVENT_AD_CLICK, onAdClick_);
+      adContext.removeEventListener(SDK.EVENT_ERROR, onAdError);
       adContext.removeEventListener(SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST, onContentPauseRequest);
       adContext.removeEventListener(SDK.EVENT_CONTENT_VIDEO_RESUME_REQUEST, onContentResumeRequest);
       adContext.dispose();
@@ -348,7 +401,12 @@ export const createPlayer = (deps: PlayerDeps): Player => {
         IO.flatMap(() => () => {
           adContext.addEventListener(SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST, onContentPauseRequest);
           adContext.addEventListener(SDK.EVENT_CONTENT_VIDEO_RESUME_REQUEST, onContentResumeRequest);
+          adContext.addEventListener(SDK.EVENT_SLOT_STARTED, onSlotStarted);
           adContext.addEventListener(SDK.EVENT_SLOT_ENDED, onSlotEnded);
+          adContext.addEventListener(SDK.EVENT_AD_IMPRESSION, onAdImpression);
+          adContext.addEventListener(SDK.EVENT_AD_IMPRESSION_END, onAdImpressionEnd);
+          adContext.addEventListener(SDK.EVENT_AD_CLICK, onAdClick_);
+          adContext.addEventListener(SDK.EVENT_ERROR, onAdError);
         }),
       ),
     ),

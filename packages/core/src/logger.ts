@@ -36,11 +36,7 @@ const formatBrowserLog = (entry: Entry): [string, ...unknown[]] => {
   const withoutDate = (data: string) => pipe(data.split("T"), RA.lookup(1));
 
   const formatDate = (date: Date) =>
-    pipe(
-      O.some(date.toISOString()),
-      O.flatMap(withoutTimezone),
-      O.flatMap(withoutDate),
-    );
+    pipe(O.some(date.toISOString()), O.flatMap(withoutTimezone), O.flatMap(withoutDate));
 
   const timestamp = pipe(
     formatDate(entry.time),
@@ -76,12 +72,8 @@ export type Logger = Readonly<{
   error: (message: string, ...args: unknown[]) => IO.IO<void>;
 }>;
 
-export const createLogger = (
-  section: string,
-  minLevel: LogLevel = "debug",
-): Logger => {
-  const shouldLog = (level: Level): boolean =>
-    minLevel !== "silent" && levelPriority[level] >= levelPriority[minLevel];
+export const createLogger = (section: string, minLevel: LogLevel = "debug"): Logger => {
+  const shouldLog = (level: Level): boolean => minLevel !== "silent" && levelPriority[level] >= levelPriority[minLevel];
 
   const noop: IO.IO<void> = () => {};
 
@@ -89,9 +81,7 @@ export const createLogger = (
     shouldLog("debug")
       ? pipe(
           D.create,
-          IO.flatMap((time) =>
-            consoleLogger({ level: "debug", message, args, time, section }),
-          ),
+          IO.flatMap((time) => consoleLogger({ level: "debug", message, args, time, section })),
         )
       : noop;
 
@@ -99,9 +89,7 @@ export const createLogger = (
     shouldLog("info")
       ? pipe(
           D.create,
-          IO.flatMap((time) =>
-            consoleLogger({ level: "info", message, args, time, section }),
-          ),
+          IO.flatMap((time) => consoleLogger({ level: "info", message, args, time, section })),
         )
       : noop;
 
@@ -109,9 +97,7 @@ export const createLogger = (
     shouldLog("warning")
       ? pipe(
           D.create,
-          IO.flatMap((time) =>
-            consoleLogger({ level: "warning", message, args, time, section }),
-          ),
+          IO.flatMap((time) => consoleLogger({ level: "warning", message, args, time, section })),
         )
       : noop;
 
@@ -119,9 +105,7 @@ export const createLogger = (
     shouldLog("error")
       ? pipe(
           D.create,
-          IO.flatMap((time) =>
-            consoleLogger({ level: "error", message, args, time, section }),
-          ),
+          IO.flatMap((time) => consoleLogger({ level: "error", message, args, time, section })),
         )
       : noop;
 
