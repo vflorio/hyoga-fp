@@ -14,20 +14,16 @@
     /**
      * Fire a timeupdate event on #videoPlayer with the given currentTime.
      * Uses Object.defineProperty so the player's getCurrentTime() sees the value.
-     *// Both
-  getter;
-  AND;
-  setter: seek();
-  's `videoEl.currentTime = at` throws
-  // TypeError in strict-mode ES modules when only a getter is defined.
-  var _t = time;
-  Object.defineProperty(video, "currentTime", {
-        get: () => _t,
-        set: (v) => { _t = v; }n (time) {
+     * Both getter AND setter: seek()'s `videoEl.currentTime = at` throws
+     * TypeError in strict-mode ES modules when only a getter is defined.
+     */
+    timeupdate: (time) => {
       var video = document.getElementById("videoPlayer");
       if (!video) throw new Error("#videoPlayer not found");
+      var _t = time;
       Object.defineProperty(video, "currentTime", {
-        get: () => time,
+        get: () => _t,
+        set: (v) => { _t = v; },
         configurable: true,
       });
       video.dispatchEvent(new Event("timeupdate"));
