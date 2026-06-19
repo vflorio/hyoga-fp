@@ -54,6 +54,9 @@ importers:
       fp-ts:
         specifier: 2.16.11
         version: 2.16.11
+      io-ts:
+        specifier: 2.2.22
+        version: 2.2.22(fp-ts@2.16.11)
       react:
         specifier: 19.2.0
         version: 19.2.0
