@@ -9,6 +9,9 @@ export const config = {
   videoAssetId: "js_allinone_demo_video",
   siteSectionId: "js_allinone_demo_site_section",
   videoDuration: 500,
+  fallbackSiteId: 42015,
+  videoContainer: "displayBase",
+  disableAutoPause: false,
 } as const;
 
 function App() {

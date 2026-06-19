@@ -34,14 +34,14 @@ const serializeArg = (arg: unknown): unknown => {
 
 const formatBackgroundScriptLog = (entry: Entry): [string, ...unknown[]] => {
   const timestamp = entry.time.toISOString().split("T")[1].split("Z")[0];
-  const prefix = `${timestamp} [hbbtv-emu] ${entry.section} ${entry.message}`;
+  const prefix = `${timestamp} [hyoga-fp] ${entry.section} ${entry.message}`;
   return [prefix, ...entry.args.map(serializeArg)];
 };
 
 const formatBrowserLog = (entry: Entry): [string, ...unknown[]] => {
   const timestamp = entry.time.toISOString().split("T")[1].split("Z")[0];
   return [
-    `%c${timestamp}%c [hbbtv-emu]%c ${entry.section}%c ${entry.message}`,
+    `%c${timestamp}%c [hyoga-fp]%c ${entry.section}%c ${entry.message}`,
     browserStyles.timestamp,
     browserStyles.prefix,
     browserStyles.section,

@@ -37,16 +37,59 @@ export function FwPlayer() {
     adManager.setServer(config.serverURL);
 
     const adContext = adManager.newContext();
-    adContext.setProfile(config.profileId);
-    adContext.setVideoAsset(config.videoAssetId, config.videoDuration);
-    adContext.setSiteSection(config.siteSectionId);
 
     playerRef.current = createPlayer({
       SDK,
       adContext,
       logger: createLogger("freewheel"),
       video: fromVideoElement(videoEl),
-      onComplete: () => location.reload(), // TODO, rivalutare l'esempio della doc ufficiale, così da poterlo togliere
+      configureContext: () => {
+        // Disable US CCPA
+        adContext.setParameter(SDK.PARAMETER_USE_CCPA_USPAPI, false, SDK.PARAMETER_LEVEL_GLOBAL);
+        adContext.setParameter(
+          SDK.PARAMETER_RENDERER_VIDEO_DISPLAY_CONTROLS_WHEN_PAUSE,
+          false,
+          SDK.PARAMETER_LEVEL_GLOBAL,
+        );
+        if (config.disableAutoPause) {
+          adContext.setParameter(SDK.PARAMETER_AUTO_PAUSE_AD_ONVISIBILITYCHANGE, false, SDK.PARAMETER_LEVEL_GLOBAL);
+        }
+        // Increase the maximum number of VAST 302 redirects, required for Google Programmatic
+        adContext.setParameter(SDK.PARAMETER_VAST_MAX_WRAPPER_COUNT, 7, SDK.PARAMETER_LEVEL_OVERRIDE);
+        adContext.setParameter(SDK.PARAMETER_EXTENSION_OMSDK_ENABLED, true, SDK.PARAMETER_LEVEL_GLOBAL);
+
+        adContext.setProfile(config.profileId);
+        adContext.setVideoAsset(
+          config.videoAssetId,
+          config.videoDuration,
+          config.networkId,
+          null,
+          SDK.VIDEO_ASSET_AUTO_PLAY_TYPE_ATTENDED,
+          Math.round(Math.random() * 10000),
+          SDK.ID_TYPE_CUSTOM,
+          "0",
+          SDK.VIDEO_ASSET_DURATION_TYPE_EXACT,
+        );
+        adContext.setSiteSection(
+          config.siteSectionId,
+          config.networkId,
+          Math.round(Math.random() * 10000),
+          SDK.ID_TYPE_CUSTOM,
+          config.fallbackSiteId,
+        );
+
+        // Temporal slots
+        adContext.addTemporalSlot("Preroll_1", SDK.ADUNIT_PREROLL, 0);
+        adContext.addTemporalSlot("Midroll_1", SDK.ADUNIT_MIDROLL, 6);
+        adContext.addTemporalSlot("Overlay_1", SDK.ADUNIT_OVERLAY, 10);
+        adContext.addTemporalSlot("Overlay_2", SDK.ADUNIT_OVERLAY, 20);
+        adContext.addTemporalSlot("Postroll_1", SDK.ADUNIT_POSTROLL, 120);
+        adContext.addTemporalSlot("pause_midroll_1", SDK.ADUNIT_PAUSE_MIDROLL, 0);
+
+        adContext.registerVideoDisplayBase(config.videoContainer);
+        adContext.addKeyValue("skippable", "enabled");
+      },
+      onComplete: () => location.reload(),
       onOverlayShown: () => {
         const element = document.querySelector('[id^="_fw_ad_container_iframe_Overlay_2"]') as HTMLElement | null;
         if (element) element.style.marginBottom = "50px";

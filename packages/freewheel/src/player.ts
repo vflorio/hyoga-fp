@@ -25,6 +25,9 @@ export interface PlayerDeps {
   readonly adContext: FreeWheel.AdContext;
   // Interfaccia di astrazione per operazioni su un elemento video HTML5
   readonly video: VideoPlayer;
+  // Configurazione del contesto ad (profile, video asset, site section, parametri, temporal slots, key-values, display base)
+  // Viene eseguita immediatamente prima del submitRequest
+  readonly configureContext: IO.IO<void>;
   // Quando il player ha finito di riprodurre tutto il contenuto e gli annunci
   readonly onComplete: IO.IO<void>;
   // Quando un overlay viene mostrato, così da poter eventualmente spostare il contenuto sottostante
@@ -38,7 +41,7 @@ export interface Player {
 }
 
 export const createPlayer = (deps: PlayerDeps): Player => {
-  const { adContext, video, SDK, onComplete, onOverlayShown, logger } = deps;
+  const { adContext, video, SDK, onComplete, onOverlayShown, logger, configureContext } = deps;
 
   const videoSrc = video.getSrc();
 
@@ -267,28 +270,17 @@ export const createPlayer = (deps: PlayerDeps): Player => {
     });
 
   // called when the user clicks Play for the first time
-  // TODO: Confrontare con quelle di Hyoga
   const requestAds: T.Task<void> = pipe(
-    // configure the ad context and register SDK-level listeners
-    T.fromIO(() => {
-      // TODO: Docs
-      adContext.addTemporalSlot("Preroll_1", SDK.ADUNIT_PREROLL, 0);
-      adContext.addTemporalSlot("Midroll_1", SDK.ADUNIT_MIDROLL, 6);
-      adContext.addTemporalSlot("Overlay_1", SDK.ADUNIT_OVERLAY, 10);
-      adContext.addTemporalSlot("Overlay_2", SDK.ADUNIT_OVERLAY, 20);
-      adContext.addTemporalSlot("Postroll_1", SDK.ADUNIT_POSTROLL, 120);
-      adContext.addTemporalSlot("pause_midroll_1", SDK.ADUNIT_PAUSE_MIDROLL, 0);
-      // TODO: Docs
-      adContext.registerVideoDisplayBase("displayBase");
-      // TODO: Docs
-      adContext.addKeyValue("skippable", "enabled");
-      // TODO: Docs
-      adContext.setParameter("extension.skippableAd.enabled", true, SDK.PARAMETER_LEVEL_GLOBAL);
-
-      adContext.addEventListener(SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST, onContentPauseRequest);
-      adContext.addEventListener(SDK.EVENT_CONTENT_VIDEO_RESUME_REQUEST, onContentResumeRequest);
-      adContext.addEventListener(SDK.EVENT_SLOT_ENDED, onSlotEnded);
-    }),
+    T.fromIO(
+      pipe(
+        configureContext,
+        IO.flatMap(() => () => {
+          adContext.addEventListener(SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST, onContentPauseRequest);
+          adContext.addEventListener(SDK.EVENT_CONTENT_VIDEO_RESUME_REQUEST, onContentResumeRequest);
+          adContext.addEventListener(SDK.EVENT_SLOT_ENDED, onSlotEnded);
+        }),
+      ),
+    ),
     // submit and await the response
     T.flatMap(() => awaitSlots),
     // update immutable state, then kick off the preroll flatMap
@@ -314,7 +306,11 @@ export const createPlayer = (deps: PlayerDeps): Player => {
   const pause: IO.IO<void> = pipe(
     stateRef.read,
     IO.flatMap((state): IO.IO<void> => {
-      const hasPauseMidroll = state.pauseMidrollSlots.length > 0 && state.pauseMidrollSlots[0].getAdCount() !== 0;
+      const hasPauseMidroll = pipe(
+        state.pauseMidrollSlots,
+        RA.head,
+        O.exists((slot) => slot.getAdCount() !== 0),
+      );
 
       return (
         match(state.phase)

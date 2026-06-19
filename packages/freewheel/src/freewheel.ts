@@ -9,8 +9,18 @@ export interface AdSlot {
 
 export interface AdContext {
   setProfile(id: string): void;
-  setVideoAsset(id: string, duration: number): void;
-  setSiteSection(id: string): void;
+  setVideoAsset(
+    id: string,
+    duration: number,
+    networkId?: number | null,
+    location?: string | null,
+    autoPlayType?: string,
+    viewUid?: number,
+    idType?: string,
+    fallbackId?: string,
+    durationType?: string,
+  ): void;
+  setSiteSection(id: string, networkId?: number, viewUid?: number, idType?: string, fallbackId?: number): void;
   addTemporalSlot(name: string, unit: string, time: number): void;
   registerVideoDisplayBase(id: string): void;
   addKeyValue(key: string, value: string): void;
@@ -19,7 +29,7 @@ export interface AdContext {
   getTemporalSlots(): ReadonlyArray<AdSlot>;
   setVideoState(state: string): void;
   submitRequest(): void;
-  setParameter(key: string, value: boolean, level: string): void;
+  setParameter(key: string, value: boolean | number, level: string): void;
   dispatchEvent(event: string, data: object): void;
   dispose(): void;
 }
@@ -29,7 +39,9 @@ export interface SDK
     AdUnitClassIdentifiers,
     EventNames,
     VideoStateValues,
-    ParameterLevels {
+    ParameterLevels,
+    ParameterKeys,
+    VideoAssetConstants {
   readonly AdManager: new () => {
     setNetwork(networkId: number): void;
     setServer(url: string): void;
@@ -71,4 +83,19 @@ export interface VideoStateValues {
 
 export interface ParameterLevels {
   readonly PARAMETER_LEVEL_GLOBAL: string;
+  readonly PARAMETER_LEVEL_OVERRIDE: string;
+}
+
+export interface ParameterKeys {
+  readonly PARAMETER_USE_CCPA_USPAPI: string;
+  readonly PARAMETER_RENDERER_VIDEO_DISPLAY_CONTROLS_WHEN_PAUSE: string;
+  readonly PARAMETER_AUTO_PAUSE_AD_ONVISIBILITYCHANGE: string;
+  readonly PARAMETER_VAST_MAX_WRAPPER_COUNT: string;
+  readonly PARAMETER_EXTENSION_OMSDK_ENABLED: string;
+}
+
+export interface VideoAssetConstants {
+  readonly VIDEO_ASSET_AUTO_PLAY_TYPE_ATTENDED: string;
+  readonly VIDEO_ASSET_DURATION_TYPE_EXACT: string;
+  readonly ID_TYPE_CUSTOM: string;
 }
