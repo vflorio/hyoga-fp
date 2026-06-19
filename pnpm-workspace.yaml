@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+  - packages/*
+  - packages/player/*
+  - packages/player/adapters/*
+
+onlyBuiltDependencies:
+  - esbuild

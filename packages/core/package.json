@@ -1,0 +1,44 @@
+{
+  "name": "@hyoga-fp/core",
+  "version": "1.0.0",
+  "devDependencies": {
+    "fp-ts": "2.16.11",
+    "io-ts": "2.2.22",
+    "typescript": "5.9.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./dom": {
+      "types": "./dist/dom/index.d.ts",
+      "import": "./dist/dom/index.js"
+    },
+    "./storage": {
+      "types": "./dist/storage/index.d.ts",
+      "import": "./dist/storage/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "dom": [
+        "./dist/dom/index.d.ts"
+      ],
+      "storage": [
+        "./dist/storage/index.d.ts"
+      ]
+    }
+  }
+}
