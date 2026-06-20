@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
-import { createInitialState } from "./model";
+import { createInitialState } from "./player";
 
 describe("createInitialState", () => {
   const state = createInitialState("https://cdn.example.com/video.mp4");
