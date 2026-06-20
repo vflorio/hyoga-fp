@@ -65,19 +65,25 @@ export function FwPlayer() {
       adContext,
       logger: createLogger("freewheel", config.logLevel as LogLevel),
       video: fromVideoElement(videoEl),
-      onComplete: () => {},
-      onOverlayShown: () => {
-        const element = document.querySelector('[id^="_fw_ad_container_iframe_Overlay_2"]') as HTMLElement | null;
-        if (element) element.style.marginBottom = "50px";
-      },
-      onAdBreakStarted: () => {
-        console.log("[demo] Ad break started");
-      },
-      onContentResumed: () => {
-        console.log("[demo] Content resumed");
-      },
-      onAdClick: (url) => () => {
-        console.log(`[demo] Ad clicked, redirecting to: ${url}`);
+      events: {
+        onComplete: () => {
+          console.log("[demo] Ad playback complete");
+        },
+        onOverlayShown: () => {
+          console.log("[demo] Overlay ad shown");
+
+          const element = document.querySelector('[id^="_fw_ad_container_iframe_Overlay_2"]') as HTMLElement | null;
+          if (element) element.style.marginBottom = "50px";
+        },
+        onAdBreakStarted: () => {
+          console.log("[demo] Ad break started");
+        },
+        onContentResumed: () => {
+          console.log("[demo] Content resumed");
+        },
+        onAdClick: (url) => () => {
+          console.log(`[demo] Ad clicked, redirecting to: ${url}`);
+        },
       },
     });
   }, []);

@@ -28,16 +28,19 @@ export interface PlayerDeps {
   // Configurazione del contesto ad (profile, video asset, site section, parametri, temporal slots, key-values, display base)
   // Viene eseguita immediatamente prima del submitRequest
   readonly configureContext: IO.IO<void>;
-  // Quando il player ha finito di riprodurre tutto il contenuto e gli annunci
-  readonly onComplete: IO.IO<void>;
-  // Quando un overlay viene mostrato, così da poter eventualmente spostare il contenuto sottostante
-  readonly onOverlayShown: IO.IO<void>;
-  // Chiamata quando inizia un ad break (preroll/midroll/postroll/pause-midroll)
-  readonly onAdBreakStarted: IO.IO<void>;
-  // Chiamata quando il contenuto riprende dopo un ad break
-  readonly onContentResumed: IO.IO<void>;
-  // Chiamata quando l'utente clicca su un ad (es. pause-midroll) e viene reindirizzato all'URL dell'inserzionista
-  readonly onAdClick: (url: string) => IO.IO<void>;
+
+  readonly events: {
+    // Quando il player ha finito di riprodurre tutto il contenuto e gli annunci
+    readonly onComplete: IO.IO<void>;
+    // Quando un overlay viene mostrato, così da poter eventualmente spostare il contenuto sottostante
+    readonly onOverlayShown: IO.IO<void>;
+    // Quando inizia un ad break (preroll/midroll/postroll/pause-midroll)
+    readonly onAdBreakStarted: IO.IO<void>;
+    // Quando il contenuto riprende dopo un ad break
+    readonly onContentResumed: IO.IO<void>;
+    // Quando l'utente clicca su un ad (es. pause-midroll) e viene reindirizzato all'URL dell'inserzionista
+    readonly onAdClick: (url: string) => IO.IO<void>;
+  };
 }
 
 export interface Player {
@@ -47,32 +50,23 @@ export interface Player {
 }
 
 export const createPlayer = (deps: PlayerDeps): Player => {
-  const {
-    adContext,
-    video,
-    SDK,
-    onComplete,
-    onOverlayShown,
-    logger,
-    configureContext,
-    onAdBreakStarted,
-    onContentResumed,
-    onAdClick,
-  } = deps;
+  const { adContext, video, SDK, logger, configureContext, events } = deps;
 
   const videoSrc = video.getSrc();
 
   const stateRef = IORef.newIORef<Model.PlayerState>(Model.createInitialState(videoSrc))();
 
-  const addVideoListeners: IO.IO<void> = () => {
-    video.on("timeupdate", onTimeUpdate)();
-    video.on("ended", onContentEnded)();
-  };
+  const addVideoListeners: IO.IO<void> = pipe(
+    IO.Do,
+    IO.flatMap(() => video.on("timeupdate", onTimeUpdate)),
+    IO.flatMap(() => video.on("ended", onContentEnded)),
+  );
 
-  const removeVideoListeners: IO.IO<void> = () => {
-    video.off("timeupdate", onTimeUpdate)();
-    video.off("ended", onContentEnded)();
-  };
+  const removeVideoListeners: IO.IO<void> = pipe(
+    IO.Do,
+    IO.flatMap(() => video.off("timeupdate", onTimeUpdate)),
+    IO.flatMap(() => video.off("ended", onContentEnded)),
+  );
 
   // Set the video element's src, seek to startAt, and press play
   const playContent = (src: string, startAt: number): IO.IO<void> =>
@@ -86,14 +80,14 @@ export const createPlayer = (deps: PlayerDeps): Player => {
           })),
         ),
       ),
-      IO.flatMap(() => logger.debug("playContent: phase → Content, currentSlot → None")),
+      IO.flatMap(() => logger.debug("playContent: phase -> Content, currentSlot -> None")),
       IO.flatMap(() => video.enableControls),
       IO.flatMap(() => video.seek(src, startAt)),
       IO.flatMap(() => video.play),
       IO.flatMap(() => addVideoListeners),
       IO.flatMap(() => () => adContext.setVideoState(SDK.VIDEO_STATE_PLAYING)),
-      IO.flatMap(() => onContentResumed),
-      IO.flatMap(() => logger.debug("playContent: videoState → PLAYING, listeners attached")),
+      IO.flatMap(() => events.onContentResumed),
+      IO.flatMap(() => logger.debug("playContent: videoState -> PLAYING, listeners attached")),
     );
 
   // Pop and play the first preroll slot, or start content if none remain
@@ -145,7 +139,21 @@ export const createPlayer = (deps: PlayerDeps): Player => {
     const classId = event.slot.getTimePositionClass();
     pipe(
       logger.info(`onSlotStarted: classId=${classId}, adCount=${event.slot.getAdCount()}`),
-      IO.flatMap(() => onAdBreakStarted),
+      IO.flatMap(() =>
+        pipe(
+          match(classId)
+            .with(
+              P.union(
+                SDK.TIME_POSITION_CLASS_PREROLL,
+                SDK.TIME_POSITION_CLASS_MIDROLL,
+                SDK.TIME_POSITION_CLASS_POSTROLL,
+                SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL,
+              ),
+              () => events.onAdBreakStarted,
+            )
+            .otherwise(() => constVoid),
+        ),
+      ),
     )();
   };
 
@@ -163,7 +171,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
     const url = event.url ?? "unknown";
     pipe(
       logger.info(`onAdClick: url=${url}`),
-      IO.flatMap(() => onAdClick(url)),
+      IO.flatMap(() => events.onAdClick(url)),
     )();
   };
 
@@ -181,26 +189,32 @@ export const createPlayer = (deps: PlayerDeps): Player => {
           match(classId)
             .with(SDK.TIME_POSITION_CLASS_PREROLL, () =>
               pipe(
-                logger.debug("onSlotEnded: decision → playPreroll"),
+                logger.debug("onSlotEnded: decision -> playPreroll"),
                 IO.flatMap(() => playPreroll),
               ),
             )
             .with(SDK.TIME_POSITION_CLASS_POSTROLL, () =>
               pipe(
-                logger.debug("onSlotEnded: decision → playPostroll"),
+                logger.debug("onSlotEnded: decision -> playPostroll"),
                 IO.flatMap(() => playPostroll),
               ),
             )
             .with(SDK.TIME_POSITION_CLASS_MIDROLL, () =>
               pipe(
-                logger.debug("onSlotEnded: decision → restoreAfterMidroll"),
+                logger.debug("onSlotEnded: decision -> restoreAfterMidroll"),
                 IO.flatMap(() => restoreAfterMidroll),
               ),
             )
             .with(SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL, () =>
               pipe(
-                logger.debug("onSlotEnded: decision → restoreAfterPauseMidroll"),
+                logger.debug("onSlotEnded: decision -> restoreAfterPauseMidroll"),
                 IO.flatMap(() => restoreAfterPauseMidroll),
+              ),
+            )
+            .with(SDK.TIME_POSITION_CLASS_OVERLAY, () =>
+              pipe(
+                logger.debug("onSlotEnded: overlay ended, no action needed"),
+                IO.flatMap(() => constVoid),
               ),
             )
             .otherwise(() =>
@@ -318,7 +332,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
                     ),
                     IO.flatMap(() => stateRef.modify(Transitions.dropOverlayNear(time))),
                     IO.flatMap(() => Effects.playSlot(overlay.value)),
-                    IO.flatMap(() => onOverlayShown),
+                    IO.flatMap(() => events.onOverlayShown),
                   ),
                 )
                 .with({ midroll: P.when(O.isSome) }, ({ midroll }) =>
@@ -361,7 +375,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
   // cleanup
 
   const cleanUp: IO.IO<void> = pipe(
-    logger.info("cleanUp: disposing ad context, phase → Done"),
+    logger.info("cleanUp: disposing ad context, phase -> Done"),
     IO.flatMap(() => stateRef.modify(Transitions.setPhase({ _tag: "Done" }))),
     IO.flatMap(() => () => {
       adContext.removeEventListener(SDK.EVENT_SLOT_STARTED, onSlotStarted);
@@ -375,7 +389,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
       adContext.dispose();
     }),
     IO.flatMap(() => logger.debug("cleanUp: all listeners removed, context disposed")),
-    IO.flatMap(() => onComplete),
+    IO.flatMap(() => events.onComplete),
   );
 
   // AD request
