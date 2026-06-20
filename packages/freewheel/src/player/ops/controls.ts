@@ -1,15 +1,18 @@
+import { constVoid, pipe } from "fp-ts/function";
+import * as IO from "fp-ts/IO";
+import * as O from "fp-ts/Option";
+import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
-import { constVoid, IO, O, pipe, RA } from "..";
 import * as Transitions from "../transitions";
-import type { PlayerContext } from "./context";
+import type { PlayerOpContext } from "../types";
 
 export interface ControlOps {
   readonly pause: IO.IO<void>;
   readonly resume: IO.IO<void>;
 }
 
-export const createControlOps = (playerContext: PlayerContext, removeVideoListeners: IO.IO<void>): ControlOps => {
-  const { stateRef, video, adContext, SDK, logger } = playerContext;
+export const createControlOps = (context: PlayerOpContext, removeVideoListeners: IO.IO<void>): ControlOps => {
+  const { stateRef, video, adContext, SDK, logger } = context;
 
   const pause: IO.IO<void> = pipe(
     stateRef.read,

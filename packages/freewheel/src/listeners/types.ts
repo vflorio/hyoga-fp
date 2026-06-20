@@ -1,6 +1,6 @@
 import type { Logger } from "@hyoga-fp/core";
+import type * as FreeWheel from "../freeWheel";
 import type * as Model from "../model";
-import type * as FreeWheel from "../model/freewheel";
 
 export interface DiagnosticDeps {
   readonly adContext: FreeWheel.AdContext;

@@ -1,5 +1,5 @@
 import type * as IO from "fp-ts/IO";
-import type * as FreeWheel from "../model/freewheel";
+import type * as FreeWheel from "../freeWheel";
 
 export interface CoreHandlers {
   readonly onSlotStarted: (event: { slot: FreeWheel.AdSlot }) => void;

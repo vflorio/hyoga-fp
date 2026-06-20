@@ -1,7 +1,9 @@
 import type { Logger } from "@hyoga-fp/core";
-import type { IO } from "..";
+import type * as IO from "fp-ts/IO";
+import type * as IORef from "fp-ts/lib/IORef";
+import type * as FreeWheel from "../freeWheel";
+import type * as Listeners from "../listeners";
 import type * as Model from "../model";
-import type * as FreeWheel from "../model/freewheel";
 
 export interface VideoPlayer {
   readonly play: IO.IO<void>;
@@ -27,4 +29,9 @@ export interface Player {
   readonly requestAds: import("fp-ts/Task").Task<void>;
   readonly pause: IO.IO<void>;
   readonly resume: IO.IO<void>;
+}
+
+export interface PlayerOpContext extends PlayerDeps {
+  readonly stateRef: IORef.IORef<Model.Player.PlayerState>;
+  readonly diagnostics: Listeners.DiagnosticRegistration;
 }

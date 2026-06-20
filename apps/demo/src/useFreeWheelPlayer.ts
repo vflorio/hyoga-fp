@@ -1,10 +1,10 @@
 import { createLogger, EventStream, type LogLevel } from "@hyoga-fp/core";
-import { Config, type FreeWheel, type Model, type Player } from "@hyoga-fp/freewheel";
+import { type FreeWheel, FreeWheelPlayer, type Model, type Player } from "@hyoga-fp/freewheel";
 import { useEffect, useMemo, useRef } from "react";
 import { match } from "ts-pattern";
 import { config } from "./env";
 
-const fromVideoElement = (videoEl: HTMLVideoElement): Player.VideoPlayer => ({
+const createVideoPlayerFrom = (videoEl: HTMLVideoElement): Player.VideoPlayer => ({
   play: () => videoEl.play(),
   pause: () => videoEl.pause(),
   getCurrentTime: () => videoEl.currentTime,
@@ -20,7 +20,8 @@ const fromVideoElement = (videoEl: HTMLVideoElement): Player.VideoPlayer => ({
   off: (event, handler) => () => videoEl.removeEventListener(event, handler),
 });
 
-const freewheelConfig: Config.FreewheelConfig = {
+const adContextConfig: FreeWheelPlayer.Config = {
+  serverURL: config.serverURL,
   profileId: config.profileId,
   videoAssetId: config.videoAssetId,
   videoDuration: config.videoDuration,
@@ -45,26 +46,15 @@ export const useFreeWheelPlayer = (videoElement: HTMLVideoElement | null) => {
 
   const eventStream = useRef(new EventStream<Model.SDK.SDKEvent>("freewheel-events"));
 
-  const adContext = useRef(
-    (() => {
-      const adManager = new SDK.AdManager();
-      adManager.setNetwork(config.networkId);
-      adManager.setServer(config.serverURL);
-
-      return adManager.newContext();
-    })(),
-  );
-
-  const makePlayer = Config.createPlayerFrom(freewheelConfig);
+  const createPlayer = FreeWheelPlayer.createPlayerFrom(adContextConfig);
 
   const player = useMemo(
     () =>
       videoElement &&
-      makePlayer({
+      createPlayer({
         SDK,
-        adContext: adContext.current,
         logger: createLogger("freewheel", config.logLevel satisfies LogLevel),
-        video: fromVideoElement(videoElement),
+        video: createVideoPlayerFrom(videoElement),
         emit: (event) => eventStream.current.broadcast(event),
       }),
     [videoElement],

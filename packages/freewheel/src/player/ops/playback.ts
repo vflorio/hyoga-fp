@@ -1,7 +1,10 @@
+import { constVoid, flow, pipe } from "fp-ts/function";
+import * as IO from "fp-ts/IO";
+import * as O from "fp-ts/Option";
+import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
-import { constVoid, flow, IO, O, pipe, RA } from "..";
 import * as Transitions from "../transitions";
-import type { PlayerContext } from "./context";
+import type { PlayerOpContext } from "../types";
 
 export interface PlaybackOps {
   readonly addVideoListeners: IO.IO<void>;
@@ -9,8 +12,8 @@ export interface PlaybackOps {
   readonly playContent: (src: string, startAt: number) => IO.IO<void>;
 }
 
-export const createPlaybackOps = (playerContext: PlayerContext, getPlayPostroll: () => IO.IO<void>): PlaybackOps => {
-  const { stateRef, video, adContext, SDK, logger, emit } = playerContext;
+export const createPlaybackOps = (context: PlayerOpContext, getPlayPostroll: () => IO.IO<void>): PlaybackOps => {
+  const { stateRef, video, adContext, SDK, logger, emit } = context;
 
   const onTimeUpdate = (): void => {
     pipe(

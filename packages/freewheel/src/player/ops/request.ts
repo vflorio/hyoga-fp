@@ -1,14 +1,20 @@
-import { IO, pipe, T } from "..";
-import * as Listeners from "../listeners";
-import type * as FreeWheel from "../model/freewheel";
+import { pipe } from "fp-ts/function";
+import * as IO from "fp-ts/IO";
+import * as T from "fp-ts/Task";
+import type * as FreeWheel from "../../freeWheel";
+import * as Listeners from "../../listeners";
 import * as Transitions from "../transitions";
-import type { PlayerContext } from "./context";
+import type { PlayerOpContext } from "../types";
+
+export interface RequestOps {
+  readonly requestAds: T.Task<void>;
+}
 
 export const createRequestOps = (
-  context: PlayerContext,
+  context: PlayerOpContext,
   coreHandlers: Listeners.CoreHandlers,
   playPreroll: IO.IO<void>,
-): { requestAds: T.Task<void> } => {
+): RequestOps => {
   const { stateRef, adContext, SDK, logger } = context;
 
   const getTemporalSlots: T.Task<ReadonlyArray<FreeWheel.AdSlot>> = () =>

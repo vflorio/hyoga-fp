@@ -1,5 +1,5 @@
-import { O } from "..";
-import type * as Freewheel from "./freewheel";
+import * as O from "fp-ts/Option";
+import type * as FreeWheel from "../freeWheel";
 
 // Algebraic Data Types
 
@@ -17,14 +17,14 @@ export type PlaybackPhase =
 export interface PlayerState {
   readonly phase: PlaybackPhase;
 
-  readonly prerollSlots: ReadonlyArray<Freewheel.AdSlot>;
-  readonly midrollSlots: ReadonlyArray<Freewheel.AdSlot>;
-  readonly overlaySlots: ReadonlyArray<Freewheel.AdSlot>;
-  readonly postrollSlots: ReadonlyArray<Freewheel.AdSlot>;
-  readonly pauseMidrollSlots: ReadonlyArray<Freewheel.AdSlot>;
+  readonly prerollSlots: ReadonlyArray<FreeWheel.AdSlot>;
+  readonly midrollSlots: ReadonlyArray<FreeWheel.AdSlot>;
+  readonly overlaySlots: ReadonlyArray<FreeWheel.AdSlot>;
+  readonly postrollSlots: ReadonlyArray<FreeWheel.AdSlot>;
+  readonly pauseMidrollSlots: ReadonlyArray<FreeWheel.AdSlot>;
 
   readonly contentSrc: string;
-  readonly currentSlot: O.Option<Freewheel.AdSlot>; // the ad slot currently playing
+  readonly currentSlot: O.Option<FreeWheel.AdSlot>; // the ad slot currently playing
   readonly contentPausedOn: number; // resume position for mid/pause-midroll
 }
 

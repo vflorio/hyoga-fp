@@ -1,12 +1,9 @@
-import type { IO } from ".";
-import type * as FreeWheel from "./model/freewheel";
+import type * as IO from "fp-ts/IO";
+import type * as FreeWheel from "./freeWheel";
 import { createPlayer, type Player, type PlayerDeps } from "./player";
 
-/**
- * Standard FreeWheel configuration for ad request setup.
- * Contains all values needed to configure the ad context before submission.
- */
-export interface FreewheelConfig {
+export interface Config {
+  readonly serverURL: string;
   readonly profileId: string;
   readonly videoAssetId: string;
   readonly videoDuration: number;
@@ -26,12 +23,9 @@ export interface FreewheelConfig {
   }>;
 }
 
-/**
- * Builds a configureContext IO from a FreewheelConfig + SDK/adContext.
- * This is the standard FreeWheel context setup extracted from typical integrations.
- */
-export const defaultConfigureContext =
-  (config: FreewheelConfig) =>
+// Configurazione standard dell'AdContext di FreeWheel AdManager SDK
+export const createDefaultConfigureContext =
+  (config: Config) =>
   (SDK: FreeWheel.SDK, adContext: FreeWheel.AdContext): IO.IO<void> =>
   () => {
     // Disable US CCPA
@@ -79,18 +73,19 @@ export const defaultConfigureContext =
     adContext.registerVideoDisplayBase(config.videoContainer);
   };
 
-/**
- * Curried player constructor: apply a FreewheelConfig to get a factory
- * that only needs the remaining PlayerDeps (without configureContext).
- *
- * Usage:
- *   const makePlayer = createPlayerFrom(myConfig);
- *   const player = makePlayer({ SDK, adContext, video, logger, ... });
- */
+// Crea un Player che utilizza il configureContext preconfigurato
 export const createPlayerFrom =
-  (config: FreewheelConfig) =>
-  (deps: Omit<PlayerDeps, "configureContext">): Player =>
-    createPlayer({
+  (config: Config) =>
+  (deps: Omit<PlayerDeps, "configureContext" | "adContext">): Player => {
+    const adManager = new deps.SDK.AdManager();
+    adManager.setNetwork(config.networkId);
+    adManager.setServer(config.serverURL);
+
+    const adContext = adManager.newContext();
+
+    return createPlayer({
       ...deps,
-      configureContext: defaultConfigureContext(config)(deps.SDK, deps.adContext),
+      adContext,
+      configureContext: createDefaultConfigureContext(config)(deps.SDK, adContext),
     });
+  };

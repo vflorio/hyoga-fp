@@ -1,8 +1,11 @@
+import { constVoid, pipe } from "fp-ts/function";
+import * as IO from "fp-ts/IO";
+import * as O from "fp-ts/Option";
+import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
-import { constVoid, IO, O, pipe, RA } from "..";
-import type * as FreeWheel from "../model/freewheel";
+import type * as FreeWheel from "../../freeWheel";
 import * as Transitions from "../transitions";
-import type { PlayerContext } from "./context";
+import type { PlayerOpContext } from "../types";
 import type { PlaybackOps } from "./playback";
 
 export interface AdBreakOps {
@@ -16,11 +19,11 @@ export interface AdBreakOps {
 }
 
 export const createAdBreakOps = (
-  playerContext: PlayerContext,
+  context: PlayerOpContext,
   playback: PlaybackOps,
   getRemoveCoreHandlers: () => IO.IO<void>,
 ): AdBreakOps => {
-  const { stateRef, adContext, SDK, logger, emit } = playerContext;
+  const { stateRef, adContext, SDK, logger, emit } = context;
 
   const playPreroll: IO.IO<void> = pipe(
     stateRef.read,
@@ -47,7 +50,7 @@ export const createAdBreakOps = (
   const cleanUp: IO.IO<void> = pipe(
     logger.info("cleanUp: disposing ad context, phase -> Done"),
     IO.flatMap(() => stateRef.modify(Transitions.setPhase({ _tag: "Done" }))),
-    IO.flatMap(() => playerContext.diagnostics.remove),
+    IO.flatMap(() => context.diagnostics.remove),
     IO.flatMap(() => getRemoveCoreHandlers()),
     IO.flatMap(() => () => adContext.dispose()),
     IO.flatMap(() => logger.debug("cleanUp: all listeners removed, context disposed")),
@@ -132,14 +135,14 @@ export const createAdBreakOps = (
             .with({ _tag: "Content" }, () => constVoid)
             .otherwise(() => stateRef.modify(Transitions.setPhase({ _tag: "Content" }))),
         ),
-        IO.flatMap(() => playerContext.video.seek(state.contentSrc, resumeAt)),
+        IO.flatMap(() => context.video.seek(state.contentSrc, resumeAt)),
         IO.flatMap(() => playback.addVideoListeners),
         IO.flatMap(() =>
           match(wasUserResumed)
             .with(true, () =>
               pipe(
                 logger.debug("restoreAfterPauseMidroll: user already resumed, playing"),
-                IO.flatMap(() => playerContext.video.play),
+                IO.flatMap(() => context.video.play),
               ),
             )
             .otherwise(() =>
