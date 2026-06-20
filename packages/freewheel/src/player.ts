@@ -55,7 +55,7 @@ export interface Player {
 export const createPlayer = (deps: PlayerDeps): Player => {
   const { adContext, video, SDK, logger, configureContext, events } = deps;
 
-  const notificationHandlers = Listeners.createNotificationHandlers({
+  const diagnosticHandlers = Listeners.createDiagnosticHandlers({
     logger,
     events,
   });
@@ -369,7 +369,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
   const cleanUp: IO.IO<void> = pipe(
     logger.info("cleanUp: disposing ad context, phase -> Done"),
     IO.flatMap(() => stateRef.modify(Transitions.setPhase({ _tag: "Done" }))),
-    IO.flatMap(() => Listeners.removeListeners(adContext, SDK, coreHandlers, notificationHandlers)),
+    IO.flatMap(() => Listeners.removeListeners(adContext, SDK, coreHandlers, diagnosticHandlers)),
     IO.flatMap(() => () => adContext.dispose()),
     IO.flatMap(() => logger.debug("cleanUp: all listeners removed, context disposed")),
     IO.flatMap(() => events.onComplete),
@@ -395,7 +395,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
         logger.info("requestAds: configuring ad context"),
         IO.flatMap(() => configureContext),
         IO.flatMap(() => logger.debug("requestAds: registering SDK event listeners")),
-        IO.flatMap(() => Listeners.registerListeners(adContext, SDK, coreHandlers, notificationHandlers)),
+        IO.flatMap(() => Listeners.registerListeners(adContext, SDK, coreHandlers, diagnosticHandlers)),
       ),
     ),
     // submit and await the response
