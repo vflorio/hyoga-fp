@@ -16,14 +16,17 @@ export function Player() {
     match(phase)
       .with("init", () => {
         setPhase("playing");
+        console.log("Requesting ads...");
         player.requestAds();
       })
       .with("playing", () => {
         setPhase("paused");
+        console.log("Pausing playback...");
         player.pause();
       })
       .with("paused", () => {
         setPhase("playing");
+        console.log("Resuming playback...");
         player.resume();
       })
       .exhaustive();
