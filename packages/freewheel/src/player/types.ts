@@ -21,7 +21,7 @@ export interface PlayerDeps {
   readonly SDK: FreeWheel.SDK;
   readonly adContext: FreeWheel.AdContext;
   readonly video: VideoPlayer;
-  readonly configureContext: IO.IO<void>;
+  readonly setupAdContext: IO.IO<void>;
   readonly emit: (event: Model.SDK.SDKEvent) => void;
 }
 

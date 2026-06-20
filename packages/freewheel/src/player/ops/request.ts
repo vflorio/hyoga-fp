@@ -32,7 +32,7 @@ export const createRequestOps = (
     T.fromIO(
       pipe(
         logger.info("requestAds: configuring ad context"),
-        IO.flatMap(() => context.configureContext),
+        IO.flatMap(() => context.setupAdContext),
         IO.flatMap(() => logger.debug("requestAds: registering SDK event listeners")),
         IO.flatMap(() => Listeners.registerCoreHandlers(adContext, SDK, coreHandlers)),
         IO.flatMap(() => context.diagnostics.register),
@@ -43,7 +43,7 @@ export const createRequestOps = (
     T.flatMap((slots) =>
       T.fromIO(
         pipe(
-          logger.info(`requestAds: received ${slots.length} slots`),
+          logger.info(`requestAds: received ${slots.length} slots`, { slots }),
           IO.flatMap(() =>
             logger.debug("requestAds: slot breakdown", {
               preroll: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_PREROLL).length,

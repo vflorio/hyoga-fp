@@ -24,7 +24,7 @@ export interface Config {
 }
 
 // Configurazione standard dell'AdContext di FreeWheel AdManager SDK
-export const createDefaultConfigureContext =
+export const createDefaultSetupAdContext =
   (config: Config) =>
   (SDK: FreeWheel.SDK, adContext: FreeWheel.AdContext): IO.IO<void> =>
   () => {
@@ -73,19 +73,23 @@ export const createDefaultConfigureContext =
     adContext.registerVideoDisplayBase(config.videoContainer);
   };
 
-// Crea un Player che utilizza il configureContext preconfigurato
+// Crea un Player che utilizza il setupAdContext preconfigurato
 export const createPlayerFrom =
   (config: Config) =>
-  (deps: Omit<PlayerDeps, "configureContext" | "adContext">): Player => {
-    const adManager = new deps.SDK.AdManager();
-    adManager.setNetwork(config.networkId);
-    adManager.setServer(config.serverURL);
+  (deps: Omit<PlayerDeps, "setupAdContext" | "adContext">): Player => {
+    const createAdManager = () => {
+      const adManager = new deps.SDK.AdManager();
 
-    const adContext = adManager.newContext();
+      adManager.setNetwork(config.networkId);
+      adManager.setServer(config.serverURL);
+      return adManager.newContext();
+    };
+
+    const adContext = createAdManager();
 
     return createPlayer({
       ...deps,
       adContext,
-      configureContext: createDefaultConfigureContext(config)(deps.SDK, adContext),
+      setupAdContext: createDefaultSetupAdContext(config)(deps.SDK, adContext),
     });
   };

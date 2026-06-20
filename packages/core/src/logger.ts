@@ -1,5 +1,5 @@
 import * as D from "fp-ts/Date";
-import { pipe } from "fp-ts/function";
+import { constVoid, pipe } from "fp-ts/function";
 import * as IO from "fp-ts/IO";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
@@ -75,15 +75,13 @@ export type Logger = Readonly<{
 export const createLogger = (section: string, minLevel: LogLevel = "debug"): Logger => {
   const shouldLog = (level: Level): boolean => minLevel !== "silent" && levelPriority[level] >= levelPriority[minLevel];
 
-  const noop: IO.IO<void> = () => {};
-
   const debug = (message: string, ...args: unknown[]): IO.IO<void> =>
     shouldLog("debug")
       ? pipe(
           D.create,
           IO.flatMap((time) => consoleLogger({ level: "debug", message, args, time, section })),
         )
-      : noop;
+      : constVoid;
 
   const info = (message: string, ...args: unknown[]): IO.IO<void> =>
     shouldLog("info")
@@ -91,7 +89,7 @@ export const createLogger = (section: string, minLevel: LogLevel = "debug"): Log
           D.create,
           IO.flatMap((time) => consoleLogger({ level: "info", message, args, time, section })),
         )
-      : noop;
+      : constVoid;
 
   const warn = (message: string, ...args: unknown[]): IO.IO<void> =>
     shouldLog("warning")
@@ -99,7 +97,7 @@ export const createLogger = (section: string, minLevel: LogLevel = "debug"): Log
           D.create,
           IO.flatMap((time) => consoleLogger({ level: "warning", message, args, time, section })),
         )
-      : noop;
+      : constVoid;
 
   const error = (message: string, ...args: unknown[]): IO.IO<void> =>
     shouldLog("error")
@@ -107,7 +105,7 @@ export const createLogger = (section: string, minLevel: LogLevel = "debug"): Log
           D.create,
           IO.flatMap((time) => consoleLogger({ level: "error", message, args, time, section })),
         )
-      : noop;
+      : constVoid;
 
   return { debug, info, warn, error };
 };

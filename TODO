@@ -1,5 +1,11 @@
 - E2E/Storybook
 
+BUGS:
+    - 21:06:46.684 [hyoga-fp] freewheel onSlotEnded: unhandled classId=DISPLAY, ignoring
+    - AdManager.js:222 Uncaught TypeError: this.getAdInstances is not a function
+                play	    @	AdManager.js:222
+                (anonymous)	@	playback.ts:68
+
 Modules {
 
     Un modulo esporta sempre un interfaccia / monad componibile per formare un applicazione completa. 

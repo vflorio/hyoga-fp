@@ -39,7 +39,7 @@ const EnvCodec = t.type({
   VITE_FW_FALLBACK_SITE_ID: IntFromString,
   VITE_FW_VIDEO_CONTAINER: t.string,
   VITE_FW_DISABLE_AUTO_PAUSE: BooleanFromString,
-  VITE_FW_LOG_LEVEL: t.keyof({
+  VITE_HYOGA_LOG_LEVEL: t.keyof({
     debug: null,
     info: null,
     warning: null,
@@ -77,7 +77,7 @@ export const config = pipe(
       fallbackSiteId: env.VITE_FW_FALLBACK_SITE_ID,
       videoContainer: env.VITE_FW_VIDEO_CONTAINER,
       disableAutoPause: env.VITE_FW_DISABLE_AUTO_PAUSE,
-      logLevel: env.VITE_FW_LOG_LEVEL,
+      logLevel: env.VITE_HYOGA_LOG_LEVEL,
     }),
   ),
 );
