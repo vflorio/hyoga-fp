@@ -1,32 +1,44 @@
-import { type CategoryPair, type DiagnosticDeps, dispatch } from "./types";
+import { dispatch } from ".";
+import type { CategoryPair, DiagnosticDeps } from "./types";
 
 export const withSlotLifecycle = (deps: DiagnosticDeps): CategoryPair => {
   const { adContext, SDK } = deps;
 
-  const extractSlot = (e: any): { customId: string; timePositionClass: string; adCount: number } | null => {
-    const slot = e?.slot;
+  // TODO: Migliorare la type-safety del parsing dell'event e migrare a unkwnown
+  const extractSlot = (rawEvent: any): { customId: string; timePositionClass: string; adCount: number } | null => {
+    const slot = rawEvent?.slot;
     if (!slot) return null;
     return {
       customId: slot.getCustomId?.() ?? "unknown",
       timePositionClass: slot.getTimePositionClass?.() ?? "unknown",
-      adCount: typeof slot.getAdCount === "function" ? slot.getAdCount() : 0,
+      adCount: slot.getAdCount?.() ?? 0,
     };
   };
 
-  const handlers = {
-    onSlotImpression: dispatch(deps, "SLOT_IMPRESSION", (e) => {
-      const s = extractSlot(e);
-      return s ? { _tag: "SlotImpression", ...s } : null;
+  const adapter = {
+    onSlotImpression: dispatch(deps, "SLOT_IMPRESSION", (rawEvent) => {
+      const slot = extractSlot(rawEvent);
+      return slot
+        ? {
+            _tag: "SlotImpression",
+            ...slot,
+          }
+        : null;
     }),
-    onSlotEnd: dispatch(deps, "SLOT_END", (e) => {
-      const s = extractSlot(e);
-      return s ? { _tag: "SlotEnd", ...s } : null;
+    onSlotEnd: dispatch(deps, "SLOT_END", (rawEvent) => {
+      const slot = extractSlot(rawEvent);
+      return slot
+        ? {
+            _tag: "SlotEnd",
+            ...slot,
+          }
+        : null;
     }),
   };
 
-  const bindings: [string, (e: any) => void][] = [
-    [SDK.EVENT_SLOT_IMPRESSION, handlers.onSlotImpression],
-    [SDK.EVENT_SLOT_END, handlers.onSlotEnd],
+  const bindings: [string, (rawEvent: any) => void][] = [
+    [SDK.EVENT_SLOT_IMPRESSION, adapter.onSlotImpression],
+    [SDK.EVENT_SLOT_END, adapter.onSlotEnd],
   ];
 
   return {

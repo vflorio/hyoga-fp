@@ -1,50 +1,95 @@
-import { type CategoryPair, type DiagnosticDeps, dispatch, extractAdId } from "./types";
+import { dispatch, extractAdId } from ".";
+import type { CategoryPair, DiagnosticDeps } from "./types";
 
 export const withUserInteractions = (deps: DiagnosticDeps): CategoryPair => {
   const { adContext, SDK } = deps;
 
-  const handlers = {
-    onAdClick: dispatch(deps, "AD_CLICK", (e) => {
-      const url = e?.url;
-      return typeof url === "string" ? { _tag: "AdClick", url } : null;
+  const adapter = {
+    onAdClick: dispatch(deps, "AD_CLICK", (rawEvent) => {
+      const url = rawEvent?.url;
+      return typeof url === "string"
+        ? {
+            _tag: "AdClick",
+            url,
+          }
+        : null;
     }),
-    onAdMute: dispatch(deps, "AD_MUTE", (e) => ({ _tag: "AdMute", adId: extractAdId(e) })),
-    onAdUnmute: dispatch(deps, "AD_UNMUTE", (e) => ({ _tag: "AdUnmute", adId: extractAdId(e) })),
-    onAdPause: dispatch(deps, "AD_PAUSE", (e) => ({ _tag: "AdPause", adId: extractAdId(e) })),
-    onAdResume: dispatch(deps, "AD_RESUME", (e) => ({ _tag: "AdResume", adId: extractAdId(e) })),
-    onAdRewind: dispatch(deps, "AD_REWIND", (e) => ({ _tag: "AdRewind", adId: extractAdId(e) })),
-    onAdCollapse: dispatch(deps, "AD_COLLAPSE", (e) => ({ _tag: "AdCollapse", adId: extractAdId(e) })),
-    onAdExpand: dispatch(deps, "AD_EXPAND", (e) => ({ _tag: "AdExpand", adId: extractAdId(e) })),
-    onAdAcceptInvitation: dispatch(deps, "AD_ACCEPT_INVITATION", (e) => ({
-      _tag: "AdAcceptInvitation",
-      adId: extractAdId(e),
+    onAdMute: dispatch(deps, "AD_MUTE", (rawEvent) => ({
+      _tag: "AdMute",
+      adId: extractAdId(rawEvent),
     })),
-    onAdClose: dispatch(deps, "AD_CLOSE", (e) => ({ _tag: "AdClose", adId: extractAdId(e) })),
-    onAdMinimize: dispatch(deps, "AD_MINIMIZE", (e) => ({ _tag: "AdMinimize", adId: extractAdId(e) })),
-    onAdVolumeChange: dispatch(deps, "AD_VOLUME_CHANGE", (e) => {
-      const volume = typeof e?.volume === "number" ? e.volume : NaN;
-      return Number.isFinite(volume) ? { _tag: "AdVolumeChange", adId: extractAdId(e), volume } : null;
+    onAdUnmute: dispatch(deps, "AD_UNMUTE", (rawEvent) => ({
+      _tag: "AdUnmute",
+      adId: extractAdId(rawEvent),
+    })),
+    onAdPause: dispatch(deps, "AD_PAUSE", (rawEvent) => ({
+      _tag: "AdPause",
+      adId: extractAdId(rawEvent),
+    })),
+    onAdResume: dispatch(deps, "AD_RESUME", (rawEvent) => ({
+      _tag: "AdResume",
+      adId: extractAdId(rawEvent),
+    })),
+    onAdRewind: dispatch(deps, "AD_REWIND", (rawEvent) => ({
+      _tag: "AdRewind",
+      adId: extractAdId(rawEvent),
+    })),
+    onAdCollapse: dispatch(deps, "AD_COLLAPSE", (rawEvent) => ({
+      _tag: "AdCollapse",
+      adId: extractAdId(rawEvent),
+    })),
+    onAdExpand: dispatch(deps, "AD_EXPAND", (rawEvent) => ({
+      _tag: "AdExpand",
+      adId: extractAdId(rawEvent),
+    })),
+    onAdAcceptInvitation: dispatch(deps, "AD_ACCEPT_INVITATION", (rawEvent) => ({
+      _tag: "AdAcceptInvitation",
+      adId: extractAdId(rawEvent),
+    })),
+    onAdClose: dispatch(deps, "AD_CLOSE", (rawEvent) => ({
+      _tag: "AdClose",
+      adId: extractAdId(rawEvent),
+    })),
+    onAdMinimize: dispatch(deps, "AD_MINIMIZE", (rawEvent) => ({
+      _tag: "AdMinimize",
+      adId: extractAdId(rawEvent),
+    })),
+    onAdVolumeChange: dispatch(deps, "AD_VOLUME_CHANGE", (rawEvent) => {
+      const volume = typeof rawEvent?.volume === "number" ? rawEvent.volume : NaN;
+      return Number.isFinite(volume)
+        ? {
+            _tag: "AdVolumeChange",
+            adId: extractAdId(rawEvent),
+            volume,
+          }
+        : null;
     }),
-    onAdSkippableStateChanged: dispatch(deps, "AD_SKIPPABLE_STATE_CHANGED", (e) => {
-      const skippable = typeof e?.skippableState === "boolean" ? e.skippableState : null;
-      return skippable !== null ? { _tag: "AdSkippableStateChanged", adId: extractAdId(e), skippable } : null;
+    onAdSkippableStateChanged: dispatch(deps, "AD_SKIPPABLE_STATE_CHANGED", (rawEvent) => {
+      const skippable = typeof rawEvent?.skippableState === "boolean" ? rawEvent.skippableState : null;
+      return skippable !== null
+        ? {
+            _tag: "AdSkippableStateChanged",
+            adId: extractAdId(rawEvent),
+            skippable,
+          }
+        : null;
     }),
   };
 
-  const bindings: [string, (e: any) => void][] = [
-    [SDK.EVENT_AD_CLICK, handlers.onAdClick],
-    [SDK.EVENT_AD_MUTE, handlers.onAdMute],
-    [SDK.EVENT_AD_UNMUTE, handlers.onAdUnmute],
-    [SDK.EVENT_AD_PAUSE, handlers.onAdPause],
-    [SDK.EVENT_AD_RESUME, handlers.onAdResume],
-    [SDK.EVENT_AD_REWIND, handlers.onAdRewind],
-    [SDK.EVENT_AD_COLLAPSE, handlers.onAdCollapse],
-    [SDK.EVENT_AD_EXPAND, handlers.onAdExpand],
-    [SDK.EVENT_AD_ACCEPT_INVITATION, handlers.onAdAcceptInvitation],
-    [SDK.EVENT_AD_CLOSE, handlers.onAdClose],
-    [SDK.EVENT_AD_MINIMIZE, handlers.onAdMinimize],
-    [SDK.EVENT_AD_VOLUME_CHANGE, handlers.onAdVolumeChange],
-    [SDK.EVENT_AD_SKIPPABLE_STATE_CHANGED, handlers.onAdSkippableStateChanged],
+  const bindings: [string, (rawEvent: any) => void][] = [
+    [SDK.EVENT_AD_CLICK, adapter.onAdClick],
+    [SDK.EVENT_AD_MUTE, adapter.onAdMute],
+    [SDK.EVENT_AD_UNMUTE, adapter.onAdUnmute],
+    [SDK.EVENT_AD_PAUSE, adapter.onAdPause],
+    [SDK.EVENT_AD_RESUME, adapter.onAdResume],
+    [SDK.EVENT_AD_REWIND, adapter.onAdRewind],
+    [SDK.EVENT_AD_COLLAPSE, adapter.onAdCollapse],
+    [SDK.EVENT_AD_EXPAND, adapter.onAdExpand],
+    [SDK.EVENT_AD_ACCEPT_INVITATION, adapter.onAdAcceptInvitation],
+    [SDK.EVENT_AD_CLOSE, adapter.onAdClose],
+    [SDK.EVENT_AD_MINIMIZE, adapter.onAdMinimize],
+    [SDK.EVENT_AD_VOLUME_CHANGE, adapter.onAdVolumeChange],
+    [SDK.EVENT_AD_SKIPPABLE_STATE_CHANGED, adapter.onAdSkippableStateChanged],
   ];
 
   return {

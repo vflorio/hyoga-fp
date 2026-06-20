@@ -1,32 +1,35 @@
 import { AppBar, Box, Button, Link, Toolbar, Typography } from "@mui/material";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { match } from "ts-pattern";
 import { useFreeWheelPlayer } from "./useFreeWheelPlayer";
 
 export type ButtonPhase = "init" | "playing" | "paused";
 
 export function Player() {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [phase, setPhase] = useState<ButtonPhase>("init");
 
-  const [player] = useFreeWheelPlayer(videoRef.current!);
+  const { videoRef, player } = useFreeWheelPlayer();
 
   const handleClick = useCallback(() => {
+    if (!player) return;
     match(phase)
       .with("init", () => {
         setPhase("playing");
+        console.log("Requesting ads...");
         player.requestAds();
       })
       .with("playing", () => {
         setPhase("paused");
+        console.log("Pausing playback...");
         player.pause();
       })
       .with("paused", () => {
         setPhase("playing");
+        console.log("Resuming playback...");
         player.resume();
       })
       .exhaustive();
-  }, [phase]);
+  }, [phase, player]);
 
   return (
     <>

@@ -1,10 +1,10 @@
 import { createLogger, EventStream, type LogLevel } from "@hyoga-fp/core";
-import { Config, type FreeWheel, type Model, type Player } from "@hyoga-fp/freewheel";
-import { useEffect, useRef } from "react";
+import { type FreeWheel, FreeWheelPlayer, type Model, type Player } from "@hyoga-fp/freewheel";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { config } from "./env";
 
-const fromVideoElement = (videoEl: HTMLVideoElement): Player.VideoPlayer => ({
+const createVideoPlayerFrom = (videoEl: HTMLVideoElement): Player.VideoPlayer => ({
   play: () => videoEl.play(),
   pause: () => videoEl.pause(),
   getCurrentTime: () => videoEl.currentTime,
@@ -20,7 +20,8 @@ const fromVideoElement = (videoEl: HTMLVideoElement): Player.VideoPlayer => ({
   off: (event, handler) => () => videoEl.removeEventListener(event, handler),
 });
 
-const freewheelConfig: Config.FreewheelConfig = {
+const adContextConfig: FreeWheelPlayer.Config = {
+  serverURL: config.serverURL,
   profileId: config.profileId,
   videoAssetId: config.videoAssetId,
   videoDuration: config.videoDuration,
@@ -40,31 +41,29 @@ const freewheelConfig: Config.FreewheelConfig = {
   keyValues: [{ key: "skippable", value: "enabled" }],
 };
 
-export const useFreeWheelPlayer = (videoElement: HTMLVideoElement) => {
+export const useFreeWheelPlayer = () => {
   const SDK = (window as any).tv.freewheel.SDK as FreeWheel.SDK;
+
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
+
+  const videoRef = useCallback((node: HTMLVideoElement | null) => {
+    setVideoElement(node);
+  }, []);
 
   const eventStream = useRef(new EventStream<Model.SDK.SDKEvent>("freewheel-events"));
 
-  const adContext = useRef(
-    (() => {
-      const adManager = new SDK.AdManager();
-      adManager.setNetwork(config.networkId);
-      adManager.setServer(config.serverURL);
+  const createPlayer = FreeWheelPlayer.createPlayerFrom(adContextConfig);
 
-      return adManager.newContext();
-    })(),
-  );
-
-  const makePlayer = Config.createPlayerFrom(freewheelConfig);
-
-  const player = useRef(
-    makePlayer({
-      SDK,
-      adContext: adContext.current,
-      logger: createLogger("freewheel", config.logLevel satisfies LogLevel),
-      video: fromVideoElement(videoElement),
-      emit: (event) => eventStream.current.broadcast(event),
-    }),
+  const player = useMemo(
+    () =>
+      videoElement &&
+      createPlayer({
+        SDK,
+        logger: createLogger("freewheel", config.logLevel satisfies LogLevel),
+        video: createVideoPlayerFrom(videoElement),
+        emit: (event) => eventStream.current.broadcast(event),
+      }),
+    [videoElement],
   );
 
   async function listen() {
@@ -89,5 +88,5 @@ export const useFreeWheelPlayer = (videoElement: HTMLVideoElement) => {
     };
   }, []);
 
-  return [player.current, listen, eventStream.current.close] as const;
+  return { videoRef, player, listen, close: eventStream.current.close };
 };

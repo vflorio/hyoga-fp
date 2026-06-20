@@ -1,10 +1,4 @@
-export { constVoid, flow, pipe } from "fp-ts/function";
-export * as IO from "fp-ts/IO";
-export * as IORef from "fp-ts/IORef";
-export * as O from "fp-ts/Option";
-export * as RA from "fp-ts/ReadonlyArray";
-export * as T from "fp-ts/Task";
-export * as Config from "./config";
-export * as FreeWheel from "./freewheel";
+export * as FreeWheel from "./freeWheel";
+export * as FreeWheelPlayer from "./freeWheelPlayer";
 export * as Model from "./model";
 export * as Player from "./player";

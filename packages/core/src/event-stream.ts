@@ -2,6 +2,8 @@ type Listener<T> = (data: T) => void;
 
 export class EventStream<T> implements AsyncIterable<T> {
   #listeners = new Set<Listener<T>>();
+  //#closed = false;
+
   #tx: BroadcastChannel;
   #rx: BroadcastChannel;
 
@@ -26,12 +28,14 @@ export class EventStream<T> implements AsyncIterable<T> {
   }
 
   close(): void {
+    //this.#closed = true;
     this.#listeners.clear();
     this.#tx.close();
     this.#rx.close();
   }
 
   broadcast(data: T): void {
+    //if (this.#closed) return;
     this.#tx.postMessage(data);
   }
 
