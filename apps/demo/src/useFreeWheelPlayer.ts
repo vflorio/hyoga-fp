@@ -1,6 +1,6 @@
 import { createLogger, EventStream, type LogLevel } from "@hyoga-fp/core";
 import { type FreeWheel, FreeWheelPlayer, type Model, type Player } from "@hyoga-fp/freewheel";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { config } from "./env";
 
@@ -41,8 +41,14 @@ const adContextConfig: FreeWheelPlayer.Config = {
   keyValues: [{ key: "skippable", value: "enabled" }],
 };
 
-export const useFreeWheelPlayer = (videoElement: HTMLVideoElement | null) => {
+export const useFreeWheelPlayer = () => {
   const SDK = (window as any).tv.freewheel.SDK as FreeWheel.SDK;
+
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
+
+  const videoRef = useCallback((node: HTMLVideoElement | null) => {
+    setVideoElement(node);
+  }, []);
 
   const eventStream = useRef(new EventStream<Model.SDK.SDKEvent>("freewheel-events"));
 
@@ -82,5 +88,5 @@ export const useFreeWheelPlayer = (videoElement: HTMLVideoElement | null) => {
     };
   }, []);
 
-  return [player, listen, eventStream.current.close] as const;
+  return { videoRef, player, listen, close: eventStream.current.close };
 };
