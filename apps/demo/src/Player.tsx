@@ -9,9 +9,10 @@ export function Player() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [phase, setPhase] = useState<ButtonPhase>("init");
 
-  const [player] = useFreeWheelPlayer(videoRef.current!);
+  const [player] = useFreeWheelPlayer(videoRef.current);
 
   const handleClick = useCallback(() => {
+    if (!player) return;
     match(phase)
       .with("init", () => {
         setPhase("playing");
@@ -26,7 +27,7 @@ export function Player() {
         player.resume();
       })
       .exhaustive();
-  }, [phase]);
+  }, [phase, player]);
 
   return (
     <>

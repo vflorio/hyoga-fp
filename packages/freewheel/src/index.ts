@@ -5,6 +5,6 @@ export * as O from "fp-ts/Option";
 export * as RA from "fp-ts/ReadonlyArray";
 export * as T from "fp-ts/Task";
 export * as Config from "./config";
-export * as FreeWheel from "./freewheel";
 export * as Model from "./model";
+export * as FreeWheel from "./model/freewheel";
 export * as Player from "./player";

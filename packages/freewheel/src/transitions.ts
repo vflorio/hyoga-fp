@@ -1,6 +1,6 @@
 import { pipe } from "fp-ts/lib/function";
 import { O, RA } from ".";
-import type { AdSlot, TimePositionClassIdentifiers } from "./freewheel";
+import type { AdSlot, TimePositionClassIdentifiers } from "./model/freewheel";
 import type { PlaybackPhase, PlayerState } from "./model/player";
 
 export const setPhase =

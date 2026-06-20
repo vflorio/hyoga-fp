@@ -1,5 +1,5 @@
 import type { IO } from ".";
-import type * as FreeWheel from "./freewheel";
+import type * as FreeWheel from "./model/freewheel";
 import { createPlayer, type Player, type PlayerDeps } from "./player";
 
 /**

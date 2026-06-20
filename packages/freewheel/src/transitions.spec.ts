@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
-import type { AdSlot, TimePositionClassIdentifiers } from "./freewheel";
+import type { AdSlot, TimePositionClassIdentifiers } from "./model/freewheel";
 import { createInitialState, type PlayerState } from "./model/player";
 import {
   applySlots,
