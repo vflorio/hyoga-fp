@@ -1,15 +1,35 @@
 - E2E/Storybook
- 
-Adapter
-    Un Adapter porta il supporto ad uno o più tipologie di Source
 
-    Platform    Backend                 .mp4    .m3u8   .mpd
-    HBBTV       AVControl               X       X       X
-    WEB         HTML5Video              X              
-    WEB         HTML5Video + HLS.js             X       
-    WEB         HTML5Video + DASH.js                    X
+Modules {
 
+    Un modulo esporta sempre un interfaccia / monad componibile per formare un applicazione completa. 
+    Il programma finale sarà solo una lista di moduli che si compongono tra loro. 
 
-Extensions
-    Trackers
-    AD Manager
+    - Adapter
+    - ADManager
+    - Trackers
+
+    ADManager {
+
+        L'AD manager è un modulo di "business layer" che si occupa di mostrare la pubblicità, 
+        posizionandosi come layer diretto sopra il video   
+
+        FreeWheel {
+            - assicurarsi che l'overlay da video in pausa funzioni correttamente
+            - aggiungere un EventHandler per l'evento di click su un overlay di redirect 
+            - aggiungere un EventHandler per quando il playback viene automaticamente messo in pausa/ripreso 
+              (per esempio per un overlay di redirect, perché la pagina è stata cambiata, ecc.)
+        }
+    }
+
+    Adapter {
+    
+        Un Adapter porta il supporto ad uno o più tipologie di Source
+
+        Platform    Backend                 .mp4    .m3u8   .mpd
+        HBBTV       AVControl               X       X       X
+        WEB         HTML5Video              X              
+        WEB         HTML5Video + HLS.js             X       
+        WEB         HTML5Video + DASH.js                    X
+    }
+}

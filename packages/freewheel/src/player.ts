@@ -180,12 +180,11 @@ export const createPlayer = (deps: PlayerDeps): Player => {
   };
 
   const onSlotEnded = (event: { slot: FreeWheel.AdSlot }): void => {
-    const classId = event.slot.getTimePositionClass();
-
     pipe(
-      logger.info(`onSlotEnded: classId=${classId}, adCount=${event.slot.getAdCount()}`),
+      IO.of(event.slot.getTimePositionClass()),
+      IO.tap((classId) => logger.info(`onSlotEnded: classId=${classId}, adCount=${event.slot.getAdCount()}`)),
       IO.flatMap(
-        (): IO.IO<void> =>
+        (classId): IO.IO<void> =>
           match(classId)
             .with(SDK.TIME_POSITION_CLASS_PREROLL, () =>
               pipe(
@@ -425,10 +424,8 @@ export const createPlayer = (deps: PlayerDeps): Player => {
       ),
     ),
     // submit and await the response
-    T.flatMap(() => {
-      logger.info("requestAds: submitting ad request, awaiting response")();
-      return awaitSlots;
-    }),
+    T.fromIOK(() => logger.info("requestAds: submitting ad request")),
+    T.flatMap(() => awaitSlots),
     // update immutable state, then kick off the preroll flatMap
     T.flatMap((slots) =>
       T.fromIO(
@@ -483,10 +480,10 @@ export const createPlayer = (deps: PlayerDeps): Player => {
                   IO.flatMap(() =>
                     pipe(
                       video.getCurrentTime,
-                      IO.flatMap((t) => {
-                        logger.debug(`pause: paused at t=${t.toFixed(2)}s`)();
-                        return stateRef.modify(Transitions.popPauseMidroll(t));
-                      }),
+                      IO.tap((t) =>
+                        logger.debug(`pause: content paused at t=${t.toFixed(2)}s, pausing with pause-midroll`),
+                      ),
+                      IO.flatMap((t) => stateRef.modify(Transitions.popPauseMidroll(t))),
                     ),
                   ),
                   IO.flatMap(() => removeVideoListeners),
