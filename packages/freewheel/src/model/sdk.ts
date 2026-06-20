@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 
-// Codecs
+// FreeWheel Events Schema Codecs
 
 // Player-level events (previously on PlayerEvents interface)
 export const AdBreakStarted = t.type({ _tag: t.literal("AdBreakStarted") });
