@@ -3,6 +3,7 @@ import { match, P } from "ts-pattern";
 import { constVoid, flow, IO, IORef, O, pipe, RA, T } from ".";
 import * as Effects from "./effects";
 import type * as FreeWheel from "./freewheel";
+import * as Listeners from "./listeners";
 import * as Model from "./model";
 import * as Transitions from "./transitions";
 
@@ -17,6 +18,19 @@ export interface VideoPlayer {
   readonly off: (event: "timeupdate" | "ended", handler: () => void) => IO.IO<void>;
 }
 
+export interface PlayerEvents {
+  // Quando il player ha finito di riprodurre tutto il contenuto e gli annunci
+  readonly onComplete: IO.IO<void>;
+  // Quando un overlay viene mostrato, così da poter eventualmente spostare il contenuto sottostante
+  readonly onOverlayShown: IO.IO<void>;
+  // Quando inizia un ad break (preroll/midroll/postroll/pause-midroll)
+  readonly onAdBreakStarted: IO.IO<void>;
+  // Quando il contenuto riprende dopo un ad break
+  readonly onContentResumed: IO.IO<void>;
+  // Quando l'utente clicca su un ad (es. pause-midroll) e viene reindirizzato all'URL dell'inserzionista
+  readonly onAdClick: (url: string) => IO.IO<void>;
+}
+
 export interface PlayerDeps {
   readonly logger: Logger;
   // Questa viene usata solo per le costanti dei vari IDs necessari per usare l'AdManager di FreeWheel
@@ -29,18 +43,7 @@ export interface PlayerDeps {
   // Viene eseguita immediatamente prima del submitRequest
   readonly configureContext: IO.IO<void>;
 
-  readonly events: {
-    // Quando il player ha finito di riprodurre tutto il contenuto e gli annunci
-    readonly onComplete: IO.IO<void>;
-    // Quando un overlay viene mostrato, così da poter eventualmente spostare il contenuto sottostante
-    readonly onOverlayShown: IO.IO<void>;
-    // Quando inizia un ad break (preroll/midroll/postroll/pause-midroll)
-    readonly onAdBreakStarted: IO.IO<void>;
-    // Quando il contenuto riprende dopo un ad break
-    readonly onContentResumed: IO.IO<void>;
-    // Quando l'utente clicca su un ad (es. pause-midroll) e viene reindirizzato all'URL dell'inserzionista
-    readonly onAdClick: (url: string) => IO.IO<void>;
-  };
+  readonly events: PlayerEvents;
 }
 
 export interface Player {
@@ -51,6 +54,11 @@ export interface Player {
 
 export const createPlayer = (deps: PlayerDeps): Player => {
   const { adContext, video, SDK, logger, configureContext, events } = deps;
+
+  const notificationHandlers = Listeners.createNotificationHandlers({
+    logger,
+    events,
+  });
 
   const videoSrc = video.getSrc();
 
@@ -155,28 +163,6 @@ export const createPlayer = (deps: PlayerDeps): Player => {
         ),
       ),
     )();
-  };
-
-  const onAdImpression = (event: { adInstance?: { getAdId?: () => string } }): void => {
-    const adId = event.adInstance?.getAdId?.() ?? "unknown";
-    logger.debug(`onAdImpression: adId=${adId}`)();
-  };
-
-  const onAdImpressionEnd = (event: { adInstance?: { getAdId?: () => string } }): void => {
-    const adId = event.adInstance?.getAdId?.() ?? "unknown";
-    logger.debug(`onAdImpressionEnd: adId=${adId}`)();
-  };
-
-  const onAdClick_ = (event: { url?: string }): void => {
-    const url = event.url ?? "unknown";
-    pipe(
-      logger.info(`onAdClick: url=${url}`),
-      IO.flatMap(() => events.onAdClick(url)),
-    )();
-  };
-
-  const onAdError = (event: { errorInfo?: string; errorCode?: string }): void => {
-    logger.error(`onAdError: code=${event.errorCode ?? "?"}, info=${event.errorInfo ?? "?"}`)();
   };
 
   const onSlotEnded = (event: { slot: FreeWheel.AdSlot }): void => {
@@ -303,6 +289,13 @@ export const createPlayer = (deps: PlayerDeps): Player => {
       IO.flatMap(() => () => adContext.setVideoState(SDK.VIDEO_STATE_PLAYING)),
     )();
 
+  const coreHandlers: Listeners.CoreHandlers = {
+    onSlotStarted,
+    onSlotEnded,
+    onContentPauseRequest,
+    onContentResumeRequest,
+  };
+
   // Fired on every video timeupdate event
   // Checks whether an overlay or midroll is due at the current playback time
   const onTimeUpdate = (): void => {
@@ -376,17 +369,8 @@ export const createPlayer = (deps: PlayerDeps): Player => {
   const cleanUp: IO.IO<void> = pipe(
     logger.info("cleanUp: disposing ad context, phase -> Done"),
     IO.flatMap(() => stateRef.modify(Transitions.setPhase({ _tag: "Done" }))),
-    IO.flatMap(() => () => {
-      adContext.removeEventListener(SDK.EVENT_SLOT_STARTED, onSlotStarted);
-      adContext.removeEventListener(SDK.EVENT_SLOT_ENDED, onSlotEnded);
-      adContext.removeEventListener(SDK.EVENT_AD_IMPRESSION, onAdImpression);
-      adContext.removeEventListener(SDK.EVENT_AD_IMPRESSION_END, onAdImpressionEnd);
-      adContext.removeEventListener(SDK.EVENT_AD_CLICK, onAdClick_);
-      adContext.removeEventListener(SDK.EVENT_ERROR, onAdError);
-      adContext.removeEventListener(SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST, onContentPauseRequest);
-      adContext.removeEventListener(SDK.EVENT_CONTENT_VIDEO_RESUME_REQUEST, onContentResumeRequest);
-      adContext.dispose();
-    }),
+    IO.flatMap(() => Listeners.removeListeners(adContext, SDK, coreHandlers, notificationHandlers)),
+    IO.flatMap(() => () => adContext.dispose()),
     IO.flatMap(() => logger.debug("cleanUp: all listeners removed, context disposed")),
     IO.flatMap(() => events.onComplete),
   );
@@ -411,16 +395,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
         logger.info("requestAds: configuring ad context"),
         IO.flatMap(() => configureContext),
         IO.flatMap(() => logger.debug("requestAds: registering SDK event listeners")),
-        IO.flatMap(() => () => {
-          adContext.addEventListener(SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST, onContentPauseRequest);
-          adContext.addEventListener(SDK.EVENT_CONTENT_VIDEO_RESUME_REQUEST, onContentResumeRequest);
-          adContext.addEventListener(SDK.EVENT_SLOT_STARTED, onSlotStarted);
-          adContext.addEventListener(SDK.EVENT_SLOT_ENDED, onSlotEnded);
-          adContext.addEventListener(SDK.EVENT_AD_IMPRESSION, onAdImpression);
-          adContext.addEventListener(SDK.EVENT_AD_IMPRESSION_END, onAdImpressionEnd);
-          adContext.addEventListener(SDK.EVENT_AD_CLICK, onAdClick_);
-          adContext.addEventListener(SDK.EVENT_ERROR, onAdError);
-        }),
+        IO.flatMap(() => Listeners.registerListeners(adContext, SDK, coreHandlers, notificationHandlers)),
       ),
     ),
     // submit and await the response
