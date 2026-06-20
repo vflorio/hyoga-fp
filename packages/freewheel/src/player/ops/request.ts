@@ -38,7 +38,7 @@ export const createRequestOps = (
         IO.flatMap(() => context.diagnostics.register),
       ),
     ),
-    T.fromIOK(() => logger.info("requestAds: submitting ad request")),
+    T.flatMap(T.fromIOK(() => logger.info("requestAds: submitting ad request"))),
     T.flatMap(() => getTemporalSlots),
     T.flatMap((slots) =>
       T.fromIO(
