@@ -1,5 +1,5 @@
-import { O } from ".";
-import type { AdSlot } from "./freewheel";
+import { O } from "..";
+import type { AdSlot } from "../freewheel";
 
 // Algebraic Data Types
 

@@ -1,7 +1,7 @@
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
 import type { AdSlot, TimePositionClassIdentifiers } from "./freewheel";
-import { createInitialState, type PlayerState } from "./model";
+import { createInitialState, type PlayerState } from "./model/player";
 import {
   applySlots,
   dropOverlayNear,

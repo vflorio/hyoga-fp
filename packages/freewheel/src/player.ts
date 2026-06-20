@@ -18,19 +18,6 @@ export interface VideoPlayer {
   readonly off: (event: "timeupdate" | "ended", handler: () => void) => IO.IO<void>;
 }
 
-export interface PlayerEvents {
-  // Quando il player ha finito di riprodurre tutto il contenuto e gli annunci
-  readonly onComplete: IO.IO<void>;
-  // Quando un overlay viene mostrato, così da poter eventualmente spostare il contenuto sottostante
-  readonly onOverlayShown: IO.IO<void>;
-  // Quando inizia un ad break (preroll/midroll/postroll/pause-midroll)
-  readonly onAdBreakStarted: IO.IO<void>;
-  // Quando il contenuto riprende dopo un ad break
-  readonly onContentResumed: IO.IO<void>;
-  // Quando l'utente clicca su un ad (es. pause-midroll) e viene reindirizzato all'URL dell'inserzionista
-  readonly onAdClick: (url: string) => IO.IO<void>;
-}
-
 export interface PlayerDeps {
   readonly logger: Logger;
   // Questa viene usata solo per le costanti dei vari IDs necessari per usare l'AdManager di FreeWheel
@@ -42,27 +29,29 @@ export interface PlayerDeps {
   // Configurazione del contesto ad (profile, video asset, site section, parametri, temporal slots, key-values, display base)
   // Viene eseguita immediatamente prima del submitRequest
   readonly configureContext: IO.IO<void>;
-
-  readonly events: PlayerEvents;
+  // Funzione per emettere eventi SDK verso lo stream esterno
+  readonly emit: (event: Model.SDK.SDKEvent) => void;
 }
 
 export interface Player {
-  requestAds: T.Task<void>;
-  pause: IO.IO<void>;
-  resume: IO.IO<void>;
+  readonly requestAds: T.Task<void>;
+  readonly pause: IO.IO<void>;
+  readonly resume: IO.IO<void>;
 }
 
 export const createPlayer = (deps: PlayerDeps): Player => {
-  const { adContext, video, SDK, logger, configureContext, events } = deps;
+  const { adContext, video, SDK, logger, configureContext, emit } = deps;
 
-  const notificationHandlers = Listeners.createNotificationHandlers({
+  const diagnostics = Listeners.createDiagnostics({
+    adContext,
+    SDK,
+    emit,
     logger,
-    events,
   });
 
   const videoSrc = video.getSrc();
 
-  const stateRef = IORef.newIORef<Model.PlayerState>(Model.createInitialState(videoSrc))();
+  const stateRef = IORef.newIORef<Model.Player.PlayerState>(Model.Player.createInitialState(videoSrc))();
 
   const addVideoListeners: IO.IO<void> = pipe(
     IO.Do,
@@ -94,7 +83,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
       IO.flatMap(() => video.play),
       IO.flatMap(() => addVideoListeners),
       IO.flatMap(() => () => adContext.setVideoState(SDK.VIDEO_STATE_PLAYING)),
-      IO.flatMap(() => events.onContentResumed),
+      IO.flatMap(() => () => emit({ _tag: "ContentResumed" })),
       IO.flatMap(() => logger.debug("playContent: videoState -> PLAYING, listeners attached")),
     );
 
@@ -157,7 +146,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
                 SDK.TIME_POSITION_CLASS_POSTROLL,
                 SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL,
               ),
-              () => events.onAdBreakStarted,
+              () => () => emit({ _tag: "AdBreakStarted" }),
             )
             .otherwise(() => constVoid),
         ),
@@ -324,7 +313,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
                     ),
                     IO.flatMap(() => stateRef.modify(Transitions.dropOverlayNear(time))),
                     IO.flatMap(() => Effects.playSlot(overlay.value)),
-                    IO.flatMap(() => events.onOverlayShown),
+                    IO.flatMap(() => () => emit({ _tag: "OverlayShown" })),
                   ),
                 )
                 .with({ midroll: P.when(O.isSome) }, ({ midroll }) =>
@@ -369,10 +358,11 @@ export const createPlayer = (deps: PlayerDeps): Player => {
   const cleanUp: IO.IO<void> = pipe(
     logger.info("cleanUp: disposing ad context, phase -> Done"),
     IO.flatMap(() => stateRef.modify(Transitions.setPhase({ _tag: "Done" }))),
-    IO.flatMap(() => Listeners.removeListeners(adContext, SDK, coreHandlers, notificationHandlers)),
+    IO.flatMap(() => diagnostics.remove),
+    IO.flatMap(() => Listeners.removeCoreHandlers(adContext, SDK, coreHandlers)),
     IO.flatMap(() => () => adContext.dispose()),
     IO.flatMap(() => logger.debug("cleanUp: all listeners removed, context disposed")),
-    IO.flatMap(() => events.onComplete),
+    IO.flatMap(() => () => emit({ _tag: "Complete" })),
   );
 
   // AD request
@@ -395,7 +385,8 @@ export const createPlayer = (deps: PlayerDeps): Player => {
         logger.info("requestAds: configuring ad context"),
         IO.flatMap(() => configureContext),
         IO.flatMap(() => logger.debug("requestAds: registering SDK event listeners")),
-        IO.flatMap(() => Listeners.registerListeners(adContext, SDK, coreHandlers, notificationHandlers)),
+        IO.flatMap(() => Listeners.registerCoreHandlers(adContext, SDK, coreHandlers)),
+        IO.flatMap(() => diagnostics.register),
       ),
     ),
     // submit and await the response

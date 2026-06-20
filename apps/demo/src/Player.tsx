@@ -1,97 +1,17 @@
-import { createLogger, type LogLevel } from "@hyoga-fp/core";
-import { createPlayerFrom, type FreewheelConfig, type Player, type SDK, type VideoPlayer } from "@hyoga-fp/freewheel";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { AppBar, Box, Button, Link, Toolbar, Typography } from "@mui/material";
+import { useCallback, useRef, useState } from "react";
 import { match } from "ts-pattern";
-import { config } from "./env";
-import { type ButtonPhase, PlayerUI } from "./PlayerUI";
+import { useFreeWheelPlayer } from "./useFreeWheelPlayer";
 
-const fromVideoElement = (videoEl: HTMLVideoElement): VideoPlayer => ({
-  play: () => videoEl.play(),
-  pause: () => videoEl.pause(),
-  getCurrentTime: () => videoEl.currentTime,
-  seek: (src, at) => () => {
-    videoEl.src = src;
-    videoEl.currentTime = at;
-  },
-  enableControls: () => {
-    videoEl.controls = true;
-  },
-  getSrc: () => (videoEl.querySelector("source") as HTMLSourceElement | null)?.src ?? videoEl.currentSrc,
-  on: (event, handler) => () => videoEl.addEventListener(event, handler),
-  off: (event, handler) => () => videoEl.removeEventListener(event, handler),
-});
+export type ButtonPhase = "init" | "playing" | "paused";
 
-const freewheelConfig: FreewheelConfig = {
-  profileId: config.profileId,
-  videoAssetId: config.videoAssetId,
-  videoDuration: config.videoDuration,
-  siteSectionId: config.siteSectionId,
-  networkId: config.networkId,
-  fallbackSiteId: config.fallbackSiteId,
-  videoContainer: config.videoContainer,
-  disableAutoPause: config.disableAutoPause,
-  temporalSlots: [
-    { name: "Preroll_1", adUnit: "preroll", timePosition: 0 },
-    { name: "Midroll_1", adUnit: "midroll", timePosition: 6 },
-    { name: "Overlay_1", adUnit: "overlay", timePosition: 10 },
-    { name: "Overlay_2", adUnit: "overlay", timePosition: 20 },
-    { name: "Postroll_1", adUnit: "postroll", timePosition: 120 },
-    { name: "pause_midroll_1", adUnit: "pause_midroll", timePosition: 0 },
-  ],
-  keyValues: [{ key: "skippable", value: "enabled" }],
-};
-
-const makePlayer = createPlayerFrom(freewheelConfig);
-
-export function FwPlayer() {
+export function Player() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const playerRef = useRef<Player | null>(null);
   const [phase, setPhase] = useState<ButtonPhase>("init");
 
-  useEffect(() => {
-    const videoEl = videoRef.current;
-    if (!videoEl) return;
-
-    const SDK = (window as any).tv.freewheel.SDK as SDK;
-
-    const adManager = new SDK.AdManager();
-    adManager.setNetwork(config.networkId);
-    adManager.setServer(config.serverURL);
-
-    const adContext = adManager.newContext();
-
-    playerRef.current = makePlayer({
-      SDK,
-      adContext,
-      logger: createLogger("freewheel", config.logLevel as LogLevel),
-      video: fromVideoElement(videoEl),
-      events: {
-        onComplete: () => {
-          console.log("[demo] Ad playback complete");
-        },
-        onOverlayShown: () => {
-          console.log("[demo] Overlay ad shown");
-
-          const element = document.querySelector('[id^="_fw_ad_container_iframe_Overlay_2"]') as HTMLElement | null;
-          if (element) element.style.marginBottom = "50px";
-        },
-        onAdBreakStarted: () => {
-          console.log("[demo] Ad break started");
-        },
-        onContentResumed: () => {
-          console.log("[demo] Content resumed");
-        },
-        onAdClick: (url) => () => {
-          console.log(`[demo] Ad clicked, redirecting to: ${url}`);
-        },
-      },
-    });
-  }, []);
+  const [player] = useFreeWheelPlayer(videoRef.current!);
 
   const handleClick = useCallback(() => {
-    const player = playerRef.current;
-    if (!player) return;
-
     match(phase)
       .with("init", () => {
         setPhase("playing");
@@ -108,5 +28,83 @@ export function FwPlayer() {
       .exhaustive();
   }, [phase]);
 
-  return <PlayerUI phase={phase} onButtonClick={handleClick} videoRef={videoRef} />;
+  return (
+    <>
+      <AppBar position="static" color="default" elevation={1}>
+        <Toolbar>
+          <img alt="Brand" src="https://vi.freewheel.tv/static/images/ee_logo.png" style={{ marginLeft: "auto" }} />
+          <Typography variant="h5" fontWeight={300} sx={{ color: "#40748c", ml: 1, mr: "auto" }}>
+            FreeWheel HTML5 Demo Player
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
+      <Box sx={{ m: "20px" }}>
+        <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", lg: "row" } }}>
+          {/* Left panel */}
+          <Box sx={{ flex: 1 }}>
+            <Box id="displayBase" sx={{ position: "relative" }}>
+              <video
+                ref={videoRef}
+                id="videoPlayer"
+                playsInline
+                style={{ height: 480, width: "100%", backgroundColor: "#000" }}
+              >
+                <source src="https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_1MB.mp4" />
+              </video>
+            </Box>
+
+            <Button variant="contained" color="info" fullWidth onClick={handleClick}>
+              {phase === "init" ? "Play" : phase === "playing" ? "Pause" : "Resume"}
+            </Button>
+
+            <Box sx={{ mt: "20px" }} id="standaloneContainer">
+              <Typography>Standalone 728x90</Typography>
+              <span id="standaloneSlot" className="_fwph">
+                <form id="_fw_form_standaloneSlot" style={{ display: "none" }}>
+                  <input
+                    type="hidden"
+                    name="_fw_input_standaloneSlot"
+                    id="_fw_input_standaloneSlot"
+                    defaultValue="ptgt=p&h=90&w=728&flag=+cmpn+fcai"
+                  />
+                </form>
+                <span id="_fw_container_standaloneSlot" />
+              </span>
+            </Box>
+          </Box>
+
+          {/* Right panel */}
+          <Box sx={{ flex: 1 }} id="companionContainer">
+            <Typography>Companion 300x250</Typography>
+            <span id="companionSlot" className="_fwph">
+              <form id="_fw_form_companionSlot" style={{ display: "none" }}>
+                <input
+                  type="hidden"
+                  name="_fw_input_companionSlot"
+                  id="_fw_input_companionSlot"
+                  defaultValue="ptgt=p&h=250&w=300"
+                />
+              </form>
+              <span id="_fw_container_companionSlot" />
+            </span>
+          </Box>
+        </Box>
+      </Box>
+
+      <Box component="footer" sx={{ p: "10px", textAlign: "right" }}>
+        <Typography component="span" sx={{ fontSize: "small", color: "#ccc" }}>
+          © {new Date().getFullYear()}
+        </Typography>{" "}
+        <Link
+          href="https://freewheel.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{ fontSize: "small", color: "#ccc" }}
+        >
+          FreeWheel Media Inc.
+        </Link>
+      </Box>
+    </>
+  );
 }
