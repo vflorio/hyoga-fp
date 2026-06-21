@@ -3,7 +3,6 @@ import type * as IO from "fp-ts/IO";
 import type * as IORef from "fp-ts/lib/IORef";
 import type * as T from "fp-ts/Task";
 import type * as FreeWheel from "../freeWheel";
-import type * as Listeners from "../listeners";
 import type * as Model from "../model";
 
 export interface VideoPlayer {
@@ -30,9 +29,9 @@ export interface Player {
   readonly requestAds: T.Task<void>;
   readonly pause: IO.IO<void>;
   readonly resume: IO.IO<void>;
+  readonly dispose: IO.IO<void>;
 }
 
 export interface PlayerOpContext extends PlayerDeps {
   readonly stateRef: IORef.IORef<Model.Player.PlayerState>;
-  readonly diagnostics: Listeners.DiagnosticRegistration;
 }

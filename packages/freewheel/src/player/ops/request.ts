@@ -45,7 +45,6 @@ export const createRequestOps = (
         IO.flatMap(() => context.setupBusinessAdContext), // Configurazione ADContext BUSINESS
         IO.flatMap(() => logger.debug("requestAds: registering SDK event listeners")),
         IO.flatMap(() => Listeners.registerCoreHandlers(adContext, SDK, coreHandlers)),
-        IO.flatMap(() => context.diagnostics.register),
       ),
     ),
     T.flatMap(T.fromIOK(() => logger.info("requestAds: submitting ad request"))),

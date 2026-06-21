@@ -1,4 +1,5 @@
 - E2E/Storybook
+- Integrazione Stone
 
 BUGS:
     - ricontrollare tutto il lifecycle dell'AD Context, 
@@ -29,8 +30,8 @@ Modules {
         const hbbtvPlayer = pipe(
             player( 
                 Adapters([ 
-                    HbbtvAvControl([ ".mp4", ".m3u8", ".mpd", ]), 
-                    HbbtvContainer([ ".mp4", ".m3u8", ".mpd", ]) 
+                    HbbTvAvControl([ ".mp4", ".m3u8", ".mpd", ]), 
+                    HbbTvContainer([ ".mp4", ".m3u8", ".mpd", ]) 
                 ]) 
             ))
             
@@ -43,6 +44,9 @@ Modules {
                 ])
             )
         )
+
+        const lomawebPlayer = pipe(webPlayer, StoneApiProvider, HyogaCustomElementInterface)
+        
         ...etc
 
     ADManager {
@@ -64,8 +68,8 @@ Modules {
 
         | Platform   | Backend                        | .mp4   | .m3u8  | .mpd  | Status | ID                   |
         | -----------|--------------------------------|--------|--------|-------|--------|----------------------|
-        | HBBTV      | Object + AVControl             | X      | X      | X     | TODO   | HbbtvAvControl       |
-        | HBBTV      | hbbtv-container AVPlayer API   | X      | X      | X     | TODO   | HbbtvContainer       | 
+        | HBBTV      | Object + AVControl             | X      | X      | X     | TODO   | HbbTvAvControl       |
+        | HBBTV      | hbbtv-container AVPlayer API   | X      | X      | X     | TODO   | HbbTvContainer       | 
         | HTML5      | VideoElement                   | X      |        |       | TODO   | VideoElementNative   |
         | HTML5      | VideoElement + HLS.js          |        | X      |       | TODO   | VideoElementHLS      |
         | HTML5      | VideoElement + DASH.js         |        |        | X     | TODO   | VideoElementDASH     |

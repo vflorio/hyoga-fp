@@ -11,18 +11,13 @@ import type { PlaybackOps } from "./playback";
 export interface AdBreakOps {
   readonly playPreroll: IO.IO<void>;
   readonly playPostroll: IO.IO<void>;
-  readonly cleanUp: IO.IO<void>;
   readonly onSlotStarted: (event: { slot: FreeWheel.AdSlot }) => void;
   readonly onSlotEnded: (event: { slot: FreeWheel.AdSlot }) => void;
   readonly onContentPauseRequest: () => void;
   readonly onContentResumeRequest: () => void;
 }
 
-export const createAdBreakOps = (
-  context: PlayerOpContext,
-  playback: PlaybackOps,
-  getRemoveCoreHandlers: () => IO.IO<void>,
-): AdBreakOps => {
+export const createAdBreakOps = (context: PlayerOpContext, playback: PlaybackOps, dispose: IO.IO<void>): AdBreakOps => {
   const { stateRef, adContext, SDK, logger, emit } = context;
 
   const playPreroll: IO.IO<void> = pipe(
@@ -47,19 +42,6 @@ export const createAdBreakOps = (
     ),
   );
 
-  // FIXME: Il CleanUp finale dovrebbe risiedere sul file principale, controllare cosa succede in caso non ci sono postroll
-  // potrebbe lasciare leak
-
-  const cleanUp: IO.IO<void> = pipe(
-    logger.info("cleanUp: disposing ad context, phase -> Done"),
-    IO.flatMap(() => stateRef.modify(Transitions.setPhase({ _tag: "Done" }))),
-    IO.flatMap(() => context.diagnostics.remove),
-    IO.flatMap(() => getRemoveCoreHandlers()),
-    IO.flatMap(() => () => adContext.dispose()),
-    IO.flatMap(() => logger.debug("cleanUp: all listeners removed, context disposed")),
-    IO.flatMap(() => () => emit({ _tag: "Complete" })),
-  );
-
   const playPostroll: IO.IO<void> = pipe(
     stateRef.read,
     IO.flatMap((state) =>
@@ -68,8 +50,8 @@ export const createAdBreakOps = (
         O.match(
           () =>
             pipe(
-              logger.debug("playPostroll: no postrolls remaining, cleaning up"),
-              IO.flatMap(() => cleanUp),
+              logger.debug("playPostroll: no postrolls remaining, disposing ad context"),
+              IO.flatMap(() => dispose),
             ),
           (slot) =>
             pipe(
@@ -223,7 +205,6 @@ export const createAdBreakOps = (
   return {
     playPreroll,
     playPostroll,
-    cleanUp,
     onSlotStarted,
     onSlotEnded,
     onContentPauseRequest,
