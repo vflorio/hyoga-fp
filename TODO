@@ -1,7 +1,9 @@
 - E2E/Storybook
 
 BUGS:
-    - possibile leak di risorse nel player, adBreaks.ts
+    - ricontrollare tutto il lifecycle dell'AD Context, 
+      possibile leak di risorse nel player, adBreaks.ts
+    - adapter modularizzati htmlvideo hlsjs, dashjs
     - 21:06:46.684 [hyoga-fp] freewheel onSlotEnded: unhandled classId=DISPLAY, ignoring
     - AdManager.js:222 Uncaught TypeError: this.getAdInstances is not a function
                 play	    @	AdManager.js:222
@@ -33,10 +35,12 @@ Modules {
     
         Un Adapter porta il supporto ad uno o più tipologie di Source
 
-        Platform    Backend                 .mp4    .m3u8   .mpd
-        HBBTV       AVControl               X       X       X
-        WEB         HTML5Video              X              
-        WEB         HTML5Video + HLS.js             X       
-        WEB         HTML5Video + DASH.js                    X
+        | Platform   | Backend                        | .mp4   | .m3u8  | .mpd  | Status |
+        | -----------|--------------------------------|--------|--------|-------|--------|
+        | HBBTV      | Object + AVControl             | X      | X      | X     | TODO   |
+        | HBBTV      | hbbtv-container AVPlayer API   | X      | X      | X     | TODO   | 
+        | HTML5      | VideoElement                   | X      |        |       | TODO   |
+        | HTML5      | VideoElement + HLS.js          |        | X      |       | TODO   |
+        | HTML5      | VideoElement + DASH.js         |        |        | X     | TODO   |
     }
 }

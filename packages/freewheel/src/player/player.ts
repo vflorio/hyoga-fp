@@ -17,6 +17,7 @@ export const createPlayer = (deps: PlayerDeps): Player => {
 
   const context: PlayerOpContext = { ...deps, stateRef, diagnostics };
 
+  // Lazy references to avoid circular dependencies
   let playPostrollRef: IO.IO<void> = () => {};
   let removeCoreHandlersRef: IO.IO<void> = () => {};
 
