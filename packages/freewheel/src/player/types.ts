@@ -1,6 +1,7 @@
 import type { Logger } from "@hyoga-fp/core";
 import type * as IO from "fp-ts/IO";
 import type * as IORef from "fp-ts/lib/IORef";
+import type * as T from "fp-ts/Task";
 import type * as FreeWheel from "../freeWheel";
 import type * as Listeners from "../listeners";
 import type * as Model from "../model";
@@ -21,12 +22,12 @@ export interface PlayerDeps {
   readonly SDK: FreeWheel.SDK;
   readonly adContext: FreeWheel.AdContext;
   readonly video: VideoPlayer;
-  readonly setupAdContext: IO.IO<void>;
+  readonly setupBusinessAdContext: IO.IO<void>;
   readonly emit: (event: Model.SDK.SDKEvent) => void;
 }
 
 export interface Player {
-  readonly requestAds: import("fp-ts/Task").Task<void>;
+  readonly requestAds: T.Task<void>;
   readonly pause: IO.IO<void>;
   readonly resume: IO.IO<void>;
 }

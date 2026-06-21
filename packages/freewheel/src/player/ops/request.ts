@@ -28,11 +28,21 @@ export const createRequestOps = (
       adContext.submitRequest();
     });
 
+  const setupTechnicalAdContext: IO.IO<void> = pipe(
+    logger.info("setupBusinessAdContext: configuring ad context"),
+    IO.flatMap(
+      () => () =>
+        // Force async VAST loading to prevent synchronous XHR blocking the main thread
+        adContext.setParameter("translator.vast.asyncLoad", true, SDK.PARAMETER_LEVEL_OVERRIDE),
+    ),
+  );
+
   const requestAds: T.Task<void> = pipe(
     T.fromIO(
       pipe(
         logger.info("requestAds: configuring ad context"),
-        IO.flatMap(() => context.setupAdContext),
+        IO.flatMap(() => setupTechnicalAdContext), // Configurazione ADContext TECNICA
+        IO.flatMap(() => context.setupBusinessAdContext), // Configurazione ADContext BUSINESS
         IO.flatMap(() => logger.debug("requestAds: registering SDK event listeners")),
         IO.flatMap(() => Listeners.registerCoreHandlers(adContext, SDK, coreHandlers)),
         IO.flatMap(() => context.diagnostics.register),

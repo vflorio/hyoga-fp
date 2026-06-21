@@ -4,19 +4,23 @@ import { createPlayer, type Player, type PlayerDeps } from "./player";
 
 export interface Config {
   readonly serverURL: string;
+  readonly videoContainer: string;
+  // Disabilita la pausa automatica degli AD quando la pagina perde visibilità (es. cambio tab)
+  readonly disableAutoPause: boolean;
+
   readonly profileId: string;
   readonly videoAssetId: string;
   readonly videoDuration: number;
   readonly siteSectionId: string;
   readonly networkId: number;
   readonly fallbackSiteId: number;
-  readonly videoContainer: string;
-  readonly disableAutoPause: boolean;
+
   readonly temporalSlots: ReadonlyArray<{
     readonly name: string;
     readonly adUnit: string;
     readonly timePosition: number;
   }>;
+
   readonly keyValues?: ReadonlyArray<{
     readonly key: string;
     readonly value: string;
@@ -24,7 +28,7 @@ export interface Config {
 }
 
 // Configurazione standard dell'AdContext di FreeWheel AdManager SDK
-export const createDefaultSetupAdContext =
+export const createDefaultBusinessSetupAdContext =
   (config: Config) =>
   (SDK: FreeWheel.SDK, adContext: FreeWheel.AdContext): IO.IO<void> =>
   () => {
@@ -73,11 +77,11 @@ export const createDefaultSetupAdContext =
     adContext.registerVideoDisplayBase(config.videoContainer);
   };
 
-// Crea un Player che utilizza il setupAdContext preconfigurato
+// Crea un Player che utilizza il setupBusinessAdContext preconfigurato
 export const createPlayerFrom =
   (config: Config) =>
-  (deps: Omit<PlayerDeps, "setupAdContext" | "adContext">): Player => {
-    const createAdManager = () => {
+  (deps: Omit<PlayerDeps, "setupBusinessAdContext" | "adContext">): Player => {
+    const createAdContext = () => {
       const adManager = new deps.SDK.AdManager();
 
       adManager.setNetwork(config.networkId);
@@ -85,11 +89,11 @@ export const createPlayerFrom =
       return adManager.newContext();
     };
 
-    const adContext = createAdManager();
+    const adContext = createAdContext();
 
     return createPlayer({
       ...deps,
       adContext,
-      setupAdContext: createDefaultSetupAdContext(config)(deps.SDK, adContext),
+      setupBusinessAdContext: createDefaultBusinessSetupAdContext(config)(deps.SDK, adContext),
     });
   };

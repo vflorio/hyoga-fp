@@ -1,6 +1,7 @@
 - E2E/Storybook
 
 BUGS:
+    - possibile leak di risorse nel player, adBreaks.ts
     - 21:06:46.684 [hyoga-fp] freewheel onSlotEnded: unhandled classId=DISPLAY, ignoring
     - AdManager.js:222 Uncaught TypeError: this.getAdInstances is not a function
                 play	    @	AdManager.js:222

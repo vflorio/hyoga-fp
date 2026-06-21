@@ -47,6 +47,9 @@ export const createAdBreakOps = (
     ),
   );
 
+  // FIXME: Il CleanUp finale dovrebbe risiedere sul file principale, controllare cosa succede in caso non ci sono postroll
+  // potrebbe lasciare leak
+
   const cleanUp: IO.IO<void> = pipe(
     logger.info("cleanUp: disposing ad context, phase -> Done"),
     IO.flatMap(() => stateRef.modify(Transitions.setPhase({ _tag: "Done" }))),
