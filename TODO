@@ -18,12 +18,39 @@ Modules {
     - ADManager
     - Trackers
 
+    composizione funzionale:
+        per evitare complesse configurazione di bundlers, si può sfruttare gli esmodules con la composizione funzionale
+        per esportare bundles mirati ad ogni piattaforma, ogni target è espresso con un package.json che a sua volta 
+        importa solo le proprie dipendenze (tipo hls.js, dash.js, video.js (se proprio dobbiamo)) e instanzia la propria
+        runtime con il proprio config 
+
+        const player => pipe(adapters, AdManager(FreeWheel<{ diagnostics: true }>), Trackers([Google, Etc])) 
+
+        const hbbtvPlayer = pipe(
+            player( 
+                Adapters([ 
+                    HbbtvAvControl([ ".mp4", ".m3u8", ".mpd", ]), 
+                    HbbtvContainer([ ".mp4", ".m3u8", ".mpd", ]) 
+                ]) 
+            ))
+            
+        const webPlayer = pipe(
+            player(
+                Adapaters([
+                    VideoElementNative([ ".mp4"  ])
+                    VideoElementHLS([    ".m3u8" ])
+                    VideoElementDASH([   ".dash" ])
+                ])
+            )
+        )
+        ...etc
+
     ADManager {
 
         L'AD manager è un modulo di "business layer" che si occupa di mostrare la pubblicità, 
         posizionandosi come layer diretto sopra il video   
 
-        FreeWheel {
+        TODO FreeWheel {
             - assicurarsi che l'overlay da video in pausa funzioni correttamente
             - aggiungere un EventHandler per l'evento di click su un overlay di redirect 
             - aggiungere un EventHandler per quando il playback viene automaticamente messo in pausa/ripreso 
@@ -35,12 +62,17 @@ Modules {
     
         Un Adapter porta il supporto ad uno o più tipologie di Source
 
-        | Platform   | Backend                        | .mp4   | .m3u8  | .mpd  | Status |
-        | -----------|--------------------------------|--------|--------|-------|--------|
-        | HBBTV      | Object + AVControl             | X      | X      | X     | TODO   |
-        | HBBTV      | hbbtv-container AVPlayer API   | X      | X      | X     | TODO   | 
-        | HTML5      | VideoElement                   | X      |        |       | TODO   |
-        | HTML5      | VideoElement + HLS.js          |        | X      |       | TODO   |
-        | HTML5      | VideoElement + DASH.js         |        |        | X     | TODO   |
+        | Platform   | Backend                        | .mp4   | .m3u8  | .mpd  | Status | ID                   |
+        | -----------|--------------------------------|--------|--------|-------|--------|----------------------|
+        | HBBTV      | Object + AVControl             | X      | X      | X     | TODO   | HbbtvAvControl       |
+        | HBBTV      | hbbtv-container AVPlayer API   | X      | X      | X     | TODO   | HbbtvContainer       | 
+        | HTML5      | VideoElement                   | X      |        |       | TODO   | VideoElementNative   |
+        | HTML5      | VideoElement + HLS.js          |        | X      |       | TODO   | VideoElementHLS      |
+        | HTML5      | VideoElement + DASH.js         |        |        | X     | TODO   | VideoElementDASH     |
+    }
+
+    Trackers {
+        Un Tracker si interfaccia con AdManager tramite l'intefaccia `diagnostics`, 
+        che riporta tutti i possibili eventi in ADT
     }
 }

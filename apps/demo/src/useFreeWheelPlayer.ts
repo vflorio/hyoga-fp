@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { config } from "./env";
 
-const createVideoPlayerFrom = (videoEl: HTMLVideoElement): Player.VideoPlayer => ({
+const createVideoAdapterFrom = (videoEl: HTMLVideoElement): Player.VideoPlayer => ({
   play: () => videoEl.play(),
   pause: () => videoEl.pause(),
   getCurrentTime: () => videoEl.currentTime,
@@ -45,13 +45,14 @@ export const useFreeWheelPlayer = () => {
   const SDK = (window as any).tv.freewheel.SDK as FreeWheel.SDK;
 
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
+  const videoRef = useCallback((node: HTMLVideoElement | null) => setVideoElement(node), []);
 
-  const videoRef = useCallback((node: HTMLVideoElement | null) => {
-    setVideoElement(node);
-  }, []);
+  const logger = useRef(createLogger("useFreeWheelPlayer", config.logLevel satisfies LogLevel));
 
+  // Il lifecycle dell'EventStream è gestito dal consumer del player
   const eventStream = useRef(new EventStream<Model.SDK.SDKEvent>("freewheel-events"));
 
+  // Creiamo un player parlialmente preconfigurato con una configurazione dell'AdContext standard
   const createPlayer = FreeWheelPlayer.createPlayerFrom(adContextConfig);
 
   const player = useMemo(
@@ -59,9 +60,9 @@ export const useFreeWheelPlayer = () => {
       videoElement &&
       createPlayer({
         SDK,
-        logger: createLogger("freewheel", config.logLevel satisfies LogLevel),
-        video: createVideoPlayerFrom(videoElement),
-        emit: (event) => eventStream.current.broadcast(event),
+        logger: createLogger("createPlayer", config.logLevel satisfies LogLevel),
+        video: createVideoAdapterFrom(videoElement),
+        emit: eventStream.current.broadcast,
       }),
     [videoElement],
   );
@@ -70,13 +71,13 @@ export const useFreeWheelPlayer = () => {
     for await (const event of eventStream.current) {
       match(event)
         .with({ _tag: "OverlayShown" }, () => {
-          console.log("[demo] Overlay ad shown");
+          logger.current.info("[EventStream] Overlay ad shown")();
 
           // FIXME rimuovere
           const element = document.querySelector('[id^="_fw_ad_container_iframe_Overlay_2"]') as HTMLElement | null;
           if (element) element.style.marginBottom = "50px";
         })
-        .otherwise((e) => console.debug("[demo] SDK event:", e._tag));
+        .otherwise((event) => logger.current.debug("[EventStream] SDK event:", event)());
     }
   }
 
