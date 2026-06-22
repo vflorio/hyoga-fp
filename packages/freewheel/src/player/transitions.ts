@@ -2,7 +2,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import type { AdSlot, TimePositionClassIdentifiers } from "../freeWheel";
-import type { PlaybackPhase, PlayerState } from "../model/player";
+import type { PlaybackPhase, PlayerState } from "./state";
 
 export const setPhase =
   (phase: PlaybackPhase) =>

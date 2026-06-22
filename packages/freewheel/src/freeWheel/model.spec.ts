@@ -4,7 +4,7 @@ import type * as Model from ".";
 
 describe("SDKEvent with createEventIterator from core", () => {
   it("emits typed SDK events through the core iterator", async () => {
-    const iter = createEventIterator<Model.SDK.SDKEvent>(({ emit, cancel }) => {
+    const iter = createEventIterator<Model.Model.SDKEvent>(({ emit, cancel }) => {
       emit({ _tag: "AdBreakStarted" });
       emit({ _tag: "AdImpression", adId: "a1" });
       emit({ _tag: "ContentResumed" });
@@ -21,7 +21,7 @@ describe("SDKEvent with createEventIterator from core", () => {
   });
 
   it("works with async emission", async () => {
-    const iter = createEventIterator<Model.SDK.SDKEvent>(({ emit, cancel }) => {
+    const iter = createEventIterator<Model.Model.SDKEvent>(({ emit, cancel }) => {
       setTimeout(() => emit({ _tag: "AdBreakStarted" }), 10);
       setTimeout(() => emit({ _tag: "Complete" }), 20);
       setTimeout(() => cancel(), 30);

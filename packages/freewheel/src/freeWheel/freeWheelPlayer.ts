@@ -1,6 +1,6 @@
 import type * as IO from "fp-ts/IO";
+import { createPlayer, type Player, type PlayerDeps } from "../player";
 import type * as FreeWheel from "./freeWheel";
-import { createPlayer, type Player, type PlayerDeps } from "./player";
 
 export interface Config {
   readonly serverURL: string;

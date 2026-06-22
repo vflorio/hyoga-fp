@@ -3,21 +3,20 @@ import * as IORef from "fp-ts/IORef";
 import { pipe } from "fp-ts/lib/function";
 import * as T from "fp-ts/Task";
 import * as Listeners from "../listeners";
-import * as Model from "../model";
 import * as Transitions from "../player/transitions";
 import { createAdBreakOps } from "./ops/adBreaks";
 import { createControlOps } from "./ops/controls";
 import { createPlaybackOps } from "./ops/playback";
 import { createRequestOps } from "./ops/request";
+import { createInitialState, type PlayerState } from "./state";
 import type { Player, PlayerDeps, PlayerOpContext } from "./types";
 
-// Il Player è ra[]
 export const createAdPlayer = (deps: PlayerDeps): Player => {
   const { logger, adContext, video, SDK, emit } = deps;
 
   const diagnostics = Listeners.createDiagnostics({ logger, adContext, SDK, emit });
   const videoSrc = video.getSrc();
-  const stateRef = IORef.newIORef<Model.Player.PlayerState>(Model.Player.createInitialState(videoSrc))();
+  const stateRef = IORef.newIORef<PlayerState>(createInitialState(videoSrc))();
 
   const context: PlayerOpContext = { ...deps, stateRef };
 

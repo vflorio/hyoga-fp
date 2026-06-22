@@ -1,5 +1,5 @@
 import * as O from "fp-ts/Option";
-import type * as FreeWheel from "../freeWheel";
+import type { FreeWheel } from "../freeWheel";
 
 // Algebraic Data Types
 

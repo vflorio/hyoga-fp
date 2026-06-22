@@ -2,8 +2,8 @@ import type { Logger } from "@hyoga-fp/core";
 import type * as IO from "fp-ts/IO";
 import type * as IORef from "fp-ts/lib/IORef";
 import type * as T from "fp-ts/Task";
-import type * as FreeWheel from "../freeWheel";
-import type * as Model from "../model";
+import type { FreeWheel, Model } from "../freeWheel";
+import type { PlayerState } from "./state";
 
 export interface VideoPlayer {
   readonly play: IO.IO<void>;
@@ -22,7 +22,7 @@ export interface PlayerDeps {
   readonly adContext: FreeWheel.AdContext;
   readonly video: VideoPlayer;
   readonly setupBusinessAdContext: IO.IO<void>;
-  readonly emit: (event: Model.SDK.SDKEvent) => void;
+  readonly emit: (event: Model.SDKEvent) => void;
 }
 
 export interface Player {
@@ -33,5 +33,5 @@ export interface Player {
 }
 
 export interface PlayerOpContext extends PlayerDeps {
-  readonly stateRef: IORef.IORef<Model.Player.PlayerState>;
+  readonly stateRef: IORef.IORef<PlayerState>;
 }

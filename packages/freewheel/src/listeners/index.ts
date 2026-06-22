@@ -1,7 +1,7 @@
 import * as IO from "fp-ts/IO";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
-import type * as Model from "../model";
+import type * as Model from "../freeWheel";
 import { withAdLifecycle } from "./ad-lifecycle";
 import { withContentState } from "./content-state";
 import { withInfrastructure } from "./infrastructure";
@@ -42,7 +42,7 @@ export const createDiagnostics = (deps: DiagnosticDeps): DiagnosticRegistration 
 export const dispatch = (
   deps: DiagnosticDeps,
   eventName: string,
-  fromRawEvent: (raw: any) => Model.SDK.SDKEvent | null,
+  fromRawEvent: (raw: any) => Model.Model.SDKEvent | null,
 ) => {
   const { emit, logger } = deps;
 
