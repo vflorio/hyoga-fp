@@ -6,7 +6,10 @@ import type { PlaybackPhase, PlayerState } from "./state";
 
 export const setPhase =
   (phase: PlaybackPhase) =>
-  (state: PlayerState): PlayerState => ({ ...state, phase });
+  (state: PlayerState): PlayerState => {
+    console.log("setPhase", { phase, state });
+    return { ...state, phase };
+  };
 
 export const applySlots =
   (timePositionClassIds: FreeWheel.TimePositionClassIdentifiers) =>

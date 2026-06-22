@@ -10,9 +10,9 @@ export interface RequestOps {
 }
 
 export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: IO.IO<void>): RequestOps => {
-  const { stateRef, adContext, SDK, logger } = context;
+  const { setState, adContext, SDK, logger } = context;
 
-  const getTemporalSlots: T.Task<ReadonlyArray<FreeWheel.AdSlot>> = () =>
+  const submitAdRequest: T.Task<ReadonlyArray<FreeWheel.AdSlot>> = () =>
     new Promise((resolve) => {
       const handler = (event: { success: boolean }) => {
         adContext.removeEventListener(SDK.EVENT_REQUEST_COMPLETE, handler);
@@ -24,7 +24,7 @@ export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: I
     });
 
   const setupTechnicalAdContext: IO.IO<void> = pipe(
-    logger.info("setupBusinessAdContext: configuring ad context"),
+    logger.info("[RequestOps] setupBusinessAdContext: configuring ad context"),
     IO.flatMap(
       () => () =>
         // Force async VAST loading to prevent synchronous XHR blocking the main thread
@@ -35,20 +35,20 @@ export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: I
   const requestAds: T.Task<void> = pipe(
     T.fromIO(
       pipe(
-        logger.info("requestAds: configuring ad context"),
+        logger.info("[RequestOps] requestAds: configuring ad context"),
         IO.flatMap(() => setupTechnicalAdContext), // Configurazione ADContext TECNICA
         IO.flatMap(() => context.setupBusinessAdContext), // Configurazione ADContext BUSINESS
-        IO.flatMap(() => logger.debug("requestAds: registering SDK event listeners")),
+        IO.flatMap(() => logger.debug("[RequestOps] requestAds: registering SDK event listeners")),
       ),
     ),
-    T.flatMap(T.fromIOK(() => logger.info("requestAds: submitting ad request"))),
-    T.flatMap(() => getTemporalSlots),
+    T.flatMap(T.fromIOK(() => logger.info("[RequestOps] requestAds: submitting ad request"))),
+    T.flatMap(() => submitAdRequest),
     T.flatMap((slots) =>
       T.fromIO(
         pipe(
-          logger.info(`requestAds: received ${slots.length} slots`, { slots }),
+          logger.info(`[RequestOps] requestAds: received ${slots.length} slots`, { slots }),
           IO.flatMap(() =>
-            logger.debug("requestAds: slot breakdown", {
+            logger.debug("[RequestOps] requestAds: slot breakdown", {
               preroll: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_PREROLL).length,
               midroll: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_MIDROLL).length,
               overlay: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_OVERLAY).length,
@@ -58,7 +58,7 @@ export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: I
             }),
           ),
           IO.flatMap(() =>
-            stateRef.modify(
+            setState(
               Transitions.applySlots({
                 TIME_POSITION_CLASS_PREROLL: SDK.TIME_POSITION_CLASS_PREROLL,
                 TIME_POSITION_CLASS_MIDROLL: SDK.TIME_POSITION_CLASS_MIDROLL,
@@ -68,7 +68,7 @@ export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: I
               })(slots),
             ),
           ),
-          IO.flatMap(() => logger.debug("requestAds: state updated, starting preroll chain")),
+          IO.flatMap(() => logger.debug("[RequestOps] requestAds: state updated, starting preroll chain")),
           IO.flatMap(() => playPreroll),
         ),
       ),

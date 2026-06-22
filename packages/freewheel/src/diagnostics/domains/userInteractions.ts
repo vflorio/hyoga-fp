@@ -6,11 +6,14 @@ export const withUserInteractions = (deps: DiagnosticDeps): DiagnosticsDomainHan
 
   const adapter = {
     onAdClick: dispatch(deps, "AD_CLICK", (rawEvent) => {
-      const url = rawEvent?.url;
-      return typeof url === "string"
+      const url = rawEvent?.url || "";
+      const type = rawEvent?.type || "";
+
+      return url || type.includes("defaultClick")
         ? {
             _tag: "AdClick",
-            url,
+            adId: extractAdId(rawEvent),
+            url: url.length > 0 ? url : "unknown", // Alcuni eventi di click non hanno URL, in questo caso logghiamo "unknown" invece di una stringa vuota
           }
         : null;
     }),

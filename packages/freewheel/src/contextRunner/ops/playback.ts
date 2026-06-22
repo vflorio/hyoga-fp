@@ -12,12 +12,15 @@ export interface PlaybackOps {
   readonly playContent: (src: string, startAt: number) => IO.IO<void>;
 }
 
-export const createPlaybackOps = (context: ContextRunnerOpContext, getPlayPostroll: () => IO.IO<void>): PlaybackOps => {
-  const { stateRef, videoAdapter, adContext, SDK, logger, emit } = context;
+export const createPlaybackOps = (
+  context: ContextRunnerOpContext,
+  getPlayPostroll: () => IO.IO<void>, // Cambia a runtime, va trovato un modo alternativo
+): PlaybackOps => {
+  const { getState, setState, videoAdapter, adContext, SDK, logger, emit } = context;
 
-  const onTimeUpdate = (): void => {
+  const onContentTimeUpdate = (): void => {
     pipe(
-      stateRef.read,
+      getState,
       IO.flatMap((state) =>
         pipe(
           videoAdapter.getCurrentTime,
@@ -36,9 +39,9 @@ export const createPlaybackOps = (context: ContextRunnerOpContext, getPlayPostro
               .with({ overlay: P.when(O.isSome) }, ({ overlay }) =>
                 pipe(
                   logger.info(
-                    `onTimeUpdate: overlay triggered at t=${time.toFixed(2)}s (cue=${overlay.value.getTimePosition()}s)`,
+                    `[PlaybackOps] onContentTimeUpdate: overlay triggered at t=${time.toFixed(2)}s (cue=${overlay.value.getTimePosition()}s)`,
                   ),
-                  IO.flatMap(() => stateRef.modify(Transitions.dropOverlayNear(time))),
+                  IO.flatMap(() => setState(Transitions.dropOverlayNear(time))),
                   IO.flatMap(() => () => overlay.value.play()),
                   IO.flatMap(() => () => emit({ _tag: "OverlayShown" })),
                 ),
@@ -46,18 +49,20 @@ export const createPlaybackOps = (context: ContextRunnerOpContext, getPlayPostro
               .with({ midroll: P.when(O.isSome) }, ({ midroll }) =>
                 pipe(
                   logger.info(
-                    `onTimeUpdate: midroll triggered at t=${time.toFixed(2)}s (cue=${midroll.value.getTimePosition()}s), pausing content`,
+                    `[PlaybackOps] onContentTimeUpdate: midroll triggered at t=${time.toFixed(2)}s (cue=${midroll.value.getTimePosition()}s), pausing content`,
                   ),
                   IO.flatMap(() => removeVideoListeners),
-                  IO.flatMap(() => stateRef.modify(Transitions.popMidroll(midroll.value, time))),
-                  IO.flatMap(() => midroll.value.play),
+                  IO.flatMap(() => setState(Transitions.popMidroll(midroll.value, time))),
+                  IO.flatMap(() => () => midroll.value.play()),
                 ),
               )
               .when(
                 () => state.overlaySlots.length === 0 && state.midrollSlots.length === 0,
                 () =>
                   pipe(
-                    logger.debug("onTimeUpdate: no timed slots remaining, removing timeupdate listener"),
+                    logger.debug(
+                      "[PlaybackOps] onContentTimeUpdate: no timed slots remaining, removing timeupdate listener",
+                    ),
                     IO.flatMap(() => removeVideoListeners),
                   ),
               )
@@ -70,7 +75,7 @@ export const createPlaybackOps = (context: ContextRunnerOpContext, getPlayPostro
 
   const onContentEnded = (): void =>
     pipe(
-      logger.info("onContentEnded: content video ended, starting postroll chain"),
+      logger.info("[PlaybackOps] onContentEnded: content video ended, starting postroll chain"),
       IO.flatMap(() => videoAdapter.off("ended", onContentEnded)),
       IO.flatMap(() => () => adContext.setVideoState(SDK.VIDEO_STATE_COMPLETED)),
       IO.flatMap(() => getPlayPostroll()),
@@ -78,35 +83,33 @@ export const createPlaybackOps = (context: ContextRunnerOpContext, getPlayPostro
 
   const addVideoListeners: IO.IO<void> = pipe(
     IO.Do,
-    IO.flatMap(() => videoAdapter.on("timeupdate", onTimeUpdate)),
+    IO.flatMap(() => videoAdapter.on("timeupdate", onContentTimeUpdate)),
     IO.flatMap(() => videoAdapter.on("ended", onContentEnded)),
   );
 
   const removeVideoListeners: IO.IO<void> = pipe(
     IO.Do,
-    IO.flatMap(() => videoAdapter.off("timeupdate", onTimeUpdate)),
+    IO.flatMap(() => videoAdapter.off("timeupdate", onContentTimeUpdate)),
     IO.flatMap(() => videoAdapter.off("ended", onContentEnded)),
   );
 
   const playContent = (src: string, startAt: number): IO.IO<void> =>
     pipe(
-      logger.info(`playContent: seeking to ${startAt}s, src=${src}`),
+      logger.info(`[PlaybackOps] playContent: seeking to ${startAt}s, src=${src}`),
       IO.flatMap(() =>
-        stateRef.modify(
+        setState(
           flow(Transitions.setPhase({ _tag: "Content" }), (state) => ({
             ...state,
             currentSlot: O.none,
           })),
         ),
       ),
-      IO.flatMap(() => logger.debug("playContent: phase -> Content, currentSlot -> None")),
       IO.flatMap(() => videoAdapter.enableControls),
       IO.flatMap(() => videoAdapter.seek(src, startAt)),
       IO.flatMap(() => videoAdapter.play),
       IO.flatMap(() => addVideoListeners),
       IO.flatMap(() => () => adContext.setVideoState(SDK.VIDEO_STATE_PLAYING)),
       IO.flatMap(() => () => emit({ _tag: "ContentResumed" })),
-      IO.flatMap(() => logger.debug("playContent: videoState -> PLAYING, listeners attached")),
     );
 
   return { addVideoListeners, removeVideoListeners, playContent };

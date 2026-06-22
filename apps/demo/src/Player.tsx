@@ -53,7 +53,7 @@ export function Player() {
                 playsInline
                 style={{ height: 480, width: "100%", backgroundColor: "#000" }}
               >
-                <source src="https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_1MB.mp4" />
+                <source src="https://ott.dolby.com/OnDelKits/AC-4/Dolby_AC-4_Online_Delivery_Kit_1.5/Test_Signals/muxed_streams/MP4/Example/Audio_ID_720p_25fps_h264_2ch_64kbps_ac4.mp4" />
               </video>
             </Box>
 

@@ -1,6 +1,6 @@
 import type { Logger } from "@hyoga-fp/core";
 import type * as IO from "fp-ts/IO";
-import type * as IORef from "fp-ts/lib/IORef";
+import type { Endomorphism } from "fp-ts/lib/Endomorphism";
 import type * as T from "fp-ts/Task";
 import type { FreeWheel, Model } from "../freeWheel";
 import type { PlayerState } from "./state";
@@ -35,5 +35,6 @@ export interface ContextRunner {
 }
 
 export interface ContextRunnerOpContext extends ContextRunnerDeps {
-  readonly stateRef: IORef.IORef<PlayerState>;
+  readonly setState: (f: Endomorphism<PlayerState>) => IO.IO<void>;
+  readonly getState: IO.IO<PlayerState>;
 }

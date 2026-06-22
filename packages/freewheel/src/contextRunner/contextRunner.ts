@@ -1,5 +1,6 @@
 import * as IO from "fp-ts/IO";
 import * as IORef from "fp-ts/IORef";
+import type { Endomorphism } from "fp-ts/lib/Endomorphism";
 import { pipe } from "fp-ts/lib/function";
 import * as T from "fp-ts/Task";
 import { createDiagnostics } from "../diagnostics/diagnostics";
@@ -19,18 +20,29 @@ export const createContextRunner = (deps: ContextRunnerDeps): ContextRunner => {
   const videoSrc = videoAdapter.getSrc();
   const stateRef = IORef.newIORef<PlayerState>(createInitialState(videoSrc))();
 
-  const context: ContextRunnerOpContext = { ...deps, stateRef };
+  const setState = (f: Endomorphism<PlayerState>): IO.IO<void> =>
+    pipe(
+      stateRef.read,
+      IO.tap((state) => logger.debug(`[ContextRunner] setState: CURRENT -> "${state.phase._tag}"`, state)),
+      IO.flatMap(() => stateRef.modify(f)),
+      IO.flatMap(() => stateRef.read),
+      IO.flatMap((newState) => logger.debug(`[ContextRunner] setState: NEXT -> "${newState.phase._tag}"`, newState)),
+      // TODO: (Streams) Emit StateChanged
+      //IO.flatMap((newState) => () => emit({ _tag: "StateChanged", state: newState })),
+    );
+
+  const context: ContextRunnerOpContext = { ...deps, setState, getState: stateRef.read };
 
   // Quando arriviamo a questo punto significa che abbiamo consumato tutti gli slots di postroll e
   // la state-machine è arrivata alla fine, quindi è necessario istanziarne una nuova
   // (con chiamata https annessa) per poter erogare un nuovo AD break
   const dispose: IO.IO<void> = pipe(
-    logger.info("AdPlayer: disposing ad context, phase -> Done"),
-    IO.flatMap(() => stateRef.modify(Transitions.setPhase({ _tag: "Done" }))),
+    logger.info("[ContextRunner] AdPlayer: disposing ad context, phase -> Done"),
+    IO.flatMap(() => setState(Transitions.setPhase({ _tag: "Done" }))),
     IO.flatMap(() => diagnostics.remove),
     IO.flatMap(() => removeCoreHandlers(adContext, SDK, coreHandlers)),
     IO.flatMap(() => () => adContext.dispose()),
-    IO.flatMap(() => logger.debug("AdPlayer: all listeners removed, context disposed")),
+    IO.flatMap(() => logger.debug("[ContextRunner] AdPlayer: all listeners removed, context disposed")),
     IO.flatMap(() => () => emit({ _tag: "Complete" })),
   );
 

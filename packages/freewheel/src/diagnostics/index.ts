@@ -26,7 +26,7 @@ export const dispatch = (
       O.match(
         () =>
           pipe(
-            logger.warn(`[SDK] ValidationError on ${eventName}`, raw),
+            logger.warn(`[dispatch] ValidationError on ${eventName}`, raw),
             IO.flatMap(
               () => () =>
                 emit({
@@ -39,7 +39,7 @@ export const dispatch = (
           ),
         (event) =>
           pipe(
-            logger.debug(`[SDK] ${event._tag}`, event),
+            logger.debug(`[dispatch] ${event._tag}`, event),
             IO.flatMap(() => () => emit(event)),
           ),
       ),

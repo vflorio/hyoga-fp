@@ -60,7 +60,7 @@ export const useFreeWheelPlayer = () => {
       videoElement &&
       createPlayer({
         SDK,
-        logger: createLogger("createPlayer", config.logLevel satisfies LogLevel),
+        logger: createLogger("FreeWheelPlayer", config.logLevel satisfies LogLevel),
         videoAdapter: createVideoAdapterFrom(videoElement),
         emit: eventStream.current.broadcast,
       }),
@@ -89,5 +89,5 @@ export const useFreeWheelPlayer = () => {
     };
   }, []);
 
-  return { videoRef, player, listen, close: eventStream.current.close };
+  return { videoRef, player, listen, close: () => eventStream.current.close() };
 };
