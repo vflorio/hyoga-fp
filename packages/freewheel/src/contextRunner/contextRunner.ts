@@ -36,22 +36,22 @@ export const createContextRunner = (deps: ContextRunnerDeps): ContextRunner => {
   // Quando arriviamo a questo punto significa che abbiamo consumato tutti gli slots di postroll e
   // la state-machine è arrivata alla fine, quindi è necessario istanziarne una nuova
   // (con chiamata https annessa) per poter erogare un nuovo AD break
+  // Chiamare dispose esplicitamente solo in casi speciali (es re-rendering react)
   const dispose: IO.IO<void> = pipe(
-    logger.info("[ContextRunner] AdPlayer: disposing ad context, phase -> Done"),
+    logger.info("[ContextRunner] dispose: cleaning up"),
     IO.flatMap(() => setState(Transitions.setPhase({ _tag: "Done" }))),
     IO.flatMap(() => diagnostics.remove),
     IO.flatMap(() => removeCoreHandlers(adContext, SDK, coreHandlers)),
     IO.flatMap(() => () => adContext.dispose()),
-    IO.flatMap(() => logger.debug("[ContextRunner] AdPlayer: all listeners removed, context disposed")),
     IO.flatMap(() => () => emit({ _tag: "Complete" })),
   );
 
   // Lazy references to avoid circular dependencies
   let playPostrollRef: IO.IO<void> = () => {};
 
-  const playback = createPlaybackOps(context, () => playPostrollRef);
-  const adBreaks = createAdBreakOps(context, playback, dispose);
-  const controls = createControlOps(context, playback.removeVideoListeners);
+  const playback = createPlaybackOps(context, dispose, () => playPostrollRef);
+  const adBreaks = createAdBreakOps(context, playback);
+  const controls = createControlOps(context, playback);
 
   playPostrollRef = adBreaks.playPostroll;
 

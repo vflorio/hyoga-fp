@@ -17,11 +17,7 @@ export interface AdBreakOps {
   readonly onContentResumeRequest: () => void;
 }
 
-export const createAdBreakOps = (
-  context: ContextRunnerOpContext,
-  playback: PlaybackOps,
-  dispose: IO.IO<void>,
-): AdBreakOps => {
+export const createAdBreakOps = (context: ContextRunnerOpContext, playback: PlaybackOps): AdBreakOps => {
   const { getState, setState, adContext, SDK, logger, emit } = context;
 
   const playPreroll: IO.IO<void> = pipe(
@@ -52,11 +48,7 @@ export const createAdBreakOps = (
       pipe(
         RA.head(state.postrollSlots),
         O.match(
-          () =>
-            pipe(
-              logger.debug("[AdBreakOps] playPostroll: no postrolls remaining, disposing ad context"),
-              IO.flatMap(() => dispose),
-            ),
+          () => pipe(logger.debug("[AdBreakOps] playPostroll: no postrolls remaining"), IO.asUnit),
           (slot) =>
             pipe(
               logger.info(`[AdBreakOps] playPostroll: playing slot (${state.postrollSlots.length} remaining)`),

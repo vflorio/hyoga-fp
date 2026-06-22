@@ -5,13 +5,14 @@ import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
 import type { ContextRunnerOpContext } from "..";
 import * as Transitions from "../transitions";
+import type { PlaybackOps } from "./playback";
 
 export interface ControlOps {
   readonly pause: IO.IO<void>;
   readonly resume: IO.IO<void>;
 }
 
-export const createControlOps = (context: ContextRunnerOpContext, removeVideoListeners: IO.IO<void>): ControlOps => {
+export const createControlOps = (context: ContextRunnerOpContext, playback: PlaybackOps): ControlOps => {
   const { getState, setState, videoAdapter, adContext, SDK, logger } = context;
 
   const pause: IO.IO<void> = pipe(
@@ -33,15 +34,15 @@ export const createControlOps = (context: ContextRunnerOpContext, removeVideoLis
                 IO.flatMap(() =>
                   pipe(
                     videoAdapter.getCurrentTime,
-                    IO.tap((t) =>
+                    IO.tap((time) =>
                       logger.debug(
-                        `[ControlOps] pause: content paused at t=${t.toFixed(2)}s, pausing with pause-midroll`,
+                        `[ControlOps] pause: content paused at t=${time.toFixed(2)}s, pausing with pause-midroll`,
                       ),
                     ),
-                    IO.flatMap((t) => setState(Transitions.popPauseMidroll(t))),
+                    IO.flatMap((time) => setState(Transitions.popPauseMidroll(time))),
                   ),
                 ),
-                IO.flatMap(() => removeVideoListeners),
+                IO.flatMap(() => playback.removeVideoListeners),
                 IO.flatMap(() => () => {
                   adContext.dispatchEvent(SDK.EVENT_USER_ACTION_NOTIFIED, {
                     action: SDK.EVENT_USER_ACTION_PAUSE_BUTTON_CLICKED,
@@ -50,10 +51,7 @@ export const createControlOps = (context: ContextRunnerOpContext, removeVideoLis
               ),
             )
             .otherwise(() =>
-              pipe(
-                logger.debug("[ControlOps] pause: content phase, no pause-midroll available, pausing video"),
-                IO.flatMap(() => videoAdapter.pause),
-              ),
+              logger.debug("[ControlOps] pause: content phase, no pause-midroll available, skipping video pause"),
             ),
         )
         .with({ _tag: P.union("Preroll", "Midroll", "Postroll") }, () =>

@@ -3,7 +3,9 @@ import * as IO from "fp-ts/IO";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
+import type { FreeWheel } from "../../freeWheel";
 import type { ContextRunnerOpContext } from "..";
+import type { PlayerState } from "../state";
 import * as Transitions from "../transitions";
 
 export interface PlaybackOps {
@@ -14,60 +16,76 @@ export interface PlaybackOps {
 
 export const createPlaybackOps = (
   context: ContextRunnerOpContext,
+  dispose: IO.IO<void>,
   getPlayPostroll: () => IO.IO<void>, // Cambia a runtime, va trovato un modo alternativo
 ): PlaybackOps => {
   const { getState, setState, videoAdapter, adContext, SDK, logger, emit } = context;
 
   const onContentTimeUpdate = (): void => {
+    const selectOverlay = (state: PlayerState, time: number) =>
+      pipe(
+        state.overlaySlots,
+        RA.findFirst((slot) => Math.abs(slot.getTimePosition() - time) < 0.5),
+      );
+
+    const selectMidroll = (state: PlayerState, time: number) =>
+      pipe(
+        state.midrollSlots,
+        RA.findFirst((slot) => Math.abs(slot.getTimePosition() - time) < 0.5),
+      );
+
+    const onOverlay = (overlay: O.Some<FreeWheel.AdSlot>, time: number) =>
+      pipe(
+        logger.info(
+          `[PlaybackOps] onContentTimeUpdate: overlay triggered at t=${time.toFixed(2)}s (cue=${overlay.value.getTimePosition()}s)`,
+        ),
+        IO.flatMap(() => setState(Transitions.dropOverlayNear(time))),
+        IO.flatMap(() => () => overlay.value.play()),
+        IO.flatMap(() => () => emit({ _tag: "OverlayShown" })),
+      );
+
+    const onMidroll = (midroll: O.Some<FreeWheel.AdSlot>, time: number) =>
+      pipe(
+        logger.info(
+          `[PlaybackOps] onContentTimeUpdate: midroll triggered at t=${time.toFixed(2)}s (cue=${midroll.value.getTimePosition()}s), pausing content`,
+        ),
+        IO.flatMap(() => removeVideoListeners),
+        IO.flatMap(() => setState(Transitions.popMidroll(midroll.value, time))),
+        IO.flatMap(() => () => midroll.value.play()),
+      );
+
+    const onNoSlotsRemaining = () =>
+      pipe(
+        logger.debug("[PlaybackOps] onContentTimeUpdate: no timed slots remaining, removing timeupdate listener"),
+        IO.flatMap(() => removeVideoListeners),
+        IO.flatMap(() => dispose),
+      );
+
     pipe(
       getState,
       IO.flatMap((state) =>
         pipe(
           videoAdapter.getCurrentTime,
-          IO.flatMap((time) => {
-            const overlay = pipe(
-              state.overlaySlots,
-              RA.findFirst((slot) => Math.abs(slot.getTimePosition() - time) < 0.5),
-            );
-
-            const midroll = pipe(
-              state.midrollSlots,
-              RA.findFirst((slot) => Math.abs(slot.getTimePosition() - time) < 0.5),
-            );
-
-            return match({ overlay, midroll })
-              .with({ overlay: P.when(O.isSome) }, ({ overlay }) =>
-                pipe(
-                  logger.info(
-                    `[PlaybackOps] onContentTimeUpdate: overlay triggered at t=${time.toFixed(2)}s (cue=${overlay.value.getTimePosition()}s)`,
-                  ),
-                  IO.flatMap(() => setState(Transitions.dropOverlayNear(time))),
-                  IO.flatMap(() => () => overlay.value.play()),
-                  IO.flatMap(() => () => emit({ _tag: "OverlayShown" })),
-                ),
-              )
-              .with({ midroll: P.when(O.isSome) }, ({ midroll }) =>
-                pipe(
-                  logger.info(
-                    `[PlaybackOps] onContentTimeUpdate: midroll triggered at t=${time.toFixed(2)}s (cue=${midroll.value.getTimePosition()}s), pausing content`,
-                  ),
-                  IO.flatMap(() => removeVideoListeners),
-                  IO.flatMap(() => setState(Transitions.popMidroll(midroll.value, time))),
-                  IO.flatMap(() => () => midroll.value.play()),
-                ),
-              )
+          IO.flatMap((time) =>
+            match({
+              overlay: selectOverlay(state, time),
+              midroll: selectMidroll(state, time),
+            })
+              .with({ midroll: P.when(O.isSome) }, ({ midroll }) => onMidroll(midroll, time))
+              .with({ overlay: P.when(O.isSome) }, ({ overlay }) => onOverlay(overlay, time))
               .when(
-                () => state.overlaySlots.length === 0 && state.midrollSlots.length === 0,
                 () =>
-                  pipe(
-                    logger.debug(
-                      "[PlaybackOps] onContentTimeUpdate: no timed slots remaining, removing timeupdate listener",
-                    ),
-                    IO.flatMap(() => removeVideoListeners),
-                  ),
+                  [
+                    state.overlaySlots.length,
+                    state.midrollSlots.length,
+                    state.prerollSlots.length,
+                    state.postrollSlots.length,
+                    state.pauseMidrollSlots.length,
+                  ].reduce((prev, current) => prev + current, 0) === 0,
+                () => onNoSlotsRemaining(),
               )
-              .otherwise(() => constVoid);
-          }),
+              .otherwise(() => constVoid),
+          ),
         ),
       ),
     )();
