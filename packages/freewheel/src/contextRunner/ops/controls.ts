@@ -3,15 +3,15 @@ import * as IO from "fp-ts/IO";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
+import type { ContextRunnerOpContext } from "..";
 import * as Transitions from "../transitions";
-import type { ADContextPlayerOpContext } from "../types";
 
 export interface ControlOps {
   readonly pause: IO.IO<void>;
   readonly resume: IO.IO<void>;
 }
 
-export const createControlOps = (context: ADContextPlayerOpContext, removeVideoListeners: IO.IO<void>): ControlOps => {
+export const createControlOps = (context: ContextRunnerOpContext, removeVideoListeners: IO.IO<void>): ControlOps => {
   const { stateRef, videoAdapter, adContext, SDK, logger } = context;
 
   const pause: IO.IO<void> = pipe(

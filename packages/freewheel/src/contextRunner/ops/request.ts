@@ -2,19 +2,14 @@ import { pipe } from "fp-ts/function";
 import * as IO from "fp-ts/IO";
 import * as T from "fp-ts/Task";
 import type { FreeWheel } from "../../freeWheel";
-import * as Listeners from "../../listeners";
+import type { ContextRunnerOpContext } from "..";
 import * as Transitions from "../transitions";
-import type { ADContextPlayerOpContext } from "../types";
 
 export interface RequestOps {
   readonly requestAds: T.Task<void>;
 }
 
-export const createRequestOps = (
-  context: ADContextPlayerOpContext,
-  coreHandlers: Listeners.CoreHandlers,
-  playPreroll: IO.IO<void>,
-): RequestOps => {
+export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: IO.IO<void>): RequestOps => {
   const { stateRef, adContext, SDK, logger } = context;
 
   const getTemporalSlots: T.Task<ReadonlyArray<FreeWheel.AdSlot>> = () =>
@@ -44,7 +39,6 @@ export const createRequestOps = (
         IO.flatMap(() => setupTechnicalAdContext), // Configurazione ADContext TECNICA
         IO.flatMap(() => context.setupBusinessAdContext), // Configurazione ADContext BUSINESS
         IO.flatMap(() => logger.debug("requestAds: registering SDK event listeners")),
-        IO.flatMap(() => Listeners.registerCoreHandlers(adContext, SDK, coreHandlers)),
       ),
     ),
     T.flatMap(T.fromIOK(() => logger.info("requestAds: submitting ad request"))),

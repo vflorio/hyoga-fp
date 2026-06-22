@@ -1,5 +1,5 @@
-import { dispatch, extractAdId } from ".";
-import type { CategoryPair, DiagnosticDeps } from "./types";
+import { type CategoryPair, dispatch, extractAdId } from "..";
+import type { DiagnosticDeps } from "../diagnostics";
 
 export const withPlaybackHealth = (deps: DiagnosticDeps): CategoryPair => {
   const { adContext, SDK } = deps;

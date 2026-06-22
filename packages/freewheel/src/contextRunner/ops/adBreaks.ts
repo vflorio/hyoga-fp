@@ -4,8 +4,8 @@ import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
 import type { FreeWheel } from "../../freeWheel";
+import type { ContextRunnerOpContext } from "..";
 import * as Transitions from "../transitions";
-import type { ADContextPlayerOpContext } from "../types";
 import type { PlaybackOps } from "./playback";
 
 export interface AdBreakOps {
@@ -18,7 +18,7 @@ export interface AdBreakOps {
 }
 
 export const createAdBreakOps = (
-  context: ADContextPlayerOpContext,
+  context: ContextRunnerOpContext,
   playback: PlaybackOps,
   dispose: IO.IO<void>,
 ): AdBreakOps => {

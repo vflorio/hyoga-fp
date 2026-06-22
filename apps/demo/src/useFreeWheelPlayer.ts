@@ -1,10 +1,10 @@
 import { createLogger, EventStream, type LogLevel } from "@hyoga-fp/core";
-import { type FreeWheel, FreeWheelPlayer, type Model, type Player } from "@hyoga-fp/freewheel";
+import { type ContextRunner, type FreeWheel, FreeWheelPlayer, type Model } from "@hyoga-fp/freewheel";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { config } from "./env";
 
-const createVideoAdapterFrom = (videoEl: HTMLVideoElement): Player.VideoPlayer => ({
+const createVideoAdapterFrom = (videoEl: HTMLVideoElement): ContextRunner.ContextRunnerVideoAdapter => ({
   play: () => videoEl.play(),
   pause: () => videoEl.pause(),
   getCurrentTime: () => videoEl.currentTime,
@@ -50,7 +50,7 @@ export const useFreeWheelPlayer = () => {
   const logger = useRef(createLogger("useFreeWheelPlayer", config.logLevel satisfies LogLevel));
 
   // Il lifecycle dell'EventStream è gestito dal consumer del player
-  const eventStream = useRef(new EventStream<Model.SDK.SDKEvent>("freewheel-events"));
+  const eventStream = useRef(new EventStream<Model.SDKEvent>("freewheel-events"));
 
   // Creiamo un player parlialmente preconfigurato con una configurazione dell'AdContext standard
   const createPlayer = FreeWheelPlayer.createPlayerFrom(adContextConfig);
@@ -61,7 +61,7 @@ export const useFreeWheelPlayer = () => {
       createPlayer({
         SDK,
         logger: createLogger("createPlayer", config.logLevel satisfies LogLevel),
-        video: createVideoAdapterFrom(videoElement),
+        videoAdapter: createVideoAdapterFrom(videoElement),
         emit: eventStream.current.broadcast,
       }),
     [videoElement],

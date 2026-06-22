@@ -1,5 +1,5 @@
-import { dispatch } from ".";
-import type { CategoryPair, DiagnosticDeps } from "./types";
+import { type CategoryPair, dispatch } from "..";
+import type { DiagnosticDeps } from "../diagnostics";
 
 export const withContentState = (deps: DiagnosticDeps): CategoryPair => {
   const { adContext, SDK } = deps;

@@ -3,8 +3,8 @@ import * as IO from "fp-ts/IO";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
+import type { ContextRunnerOpContext } from "..";
 import * as Transitions from "../transitions";
-import type { ADContextPlayerOpContext } from "../types";
 
 export interface PlaybackOps {
   readonly addVideoListeners: IO.IO<void>;
@@ -12,10 +12,7 @@ export interface PlaybackOps {
   readonly playContent: (src: string, startAt: number) => IO.IO<void>;
 }
 
-export const createPlaybackOps = (
-  context: ADContextPlayerOpContext,
-  getPlayPostroll: () => IO.IO<void>,
-): PlaybackOps => {
+export const createPlaybackOps = (context: ContextRunnerOpContext, getPlayPostroll: () => IO.IO<void>): PlaybackOps => {
   const { stateRef, videoAdapter, adContext, SDK, logger, emit } = context;
 
   const onTimeUpdate = (): void => {
