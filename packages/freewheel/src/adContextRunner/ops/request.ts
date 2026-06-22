@@ -1,17 +1,17 @@
 import { pipe } from "fp-ts/function";
 import * as IO from "fp-ts/IO";
 import * as T from "fp-ts/Task";
-import type * as FreeWheel from "../../freeWheel";
+import type { FreeWheel } from "../../freeWheel";
 import * as Listeners from "../../listeners";
 import * as Transitions from "../transitions";
-import type { PlayerOpContext } from "../types";
+import type { ADContextPlayerOpContext } from "../types";
 
 export interface RequestOps {
   readonly requestAds: T.Task<void>;
 }
 
 export const createRequestOps = (
-  context: PlayerOpContext,
+  context: ADContextPlayerOpContext,
   coreHandlers: Listeners.CoreHandlers,
   playPreroll: IO.IO<void>,
 ): RequestOps => {

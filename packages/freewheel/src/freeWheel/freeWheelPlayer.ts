@@ -1,5 +1,5 @@
 import type * as IO from "fp-ts/IO";
-import { createPlayer, type Player, type PlayerDeps } from "../player";
+import { type ADContextPlayer, type ADContextPlayerPlayerDeps, createPlayer } from "../adContextRunner";
 import type * as FreeWheel from "./freeWheel";
 
 export interface Config {
@@ -80,7 +80,7 @@ export const createDefaultBusinessSetupAdContext =
 // Crea un Player che utilizza il setupBusinessAdContext preconfigurato
 export const createPlayerFrom =
   (config: Config) =>
-  (deps: Omit<PlayerDeps, "setupBusinessAdContext" | "adContext">): Player => {
+  (deps: Omit<ADContextPlayerPlayerDeps, "setupBusinessAdContext" | "adContext">): ADContextPlayer => {
     const createAdContext = () => {
       const adManager = new deps.SDK.AdManager();
 

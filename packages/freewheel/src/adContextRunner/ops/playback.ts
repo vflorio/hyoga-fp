@@ -4,7 +4,7 @@ import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
 import * as Transitions from "../transitions";
-import type { PlayerOpContext } from "../types";
+import type { ADContextPlayerOpContext } from "../types";
 
 export interface PlaybackOps {
   readonly addVideoListeners: IO.IO<void>;
@@ -12,15 +12,18 @@ export interface PlaybackOps {
   readonly playContent: (src: string, startAt: number) => IO.IO<void>;
 }
 
-export const createPlaybackOps = (context: PlayerOpContext, getPlayPostroll: () => IO.IO<void>): PlaybackOps => {
-  const { stateRef, video, adContext, SDK, logger, emit } = context;
+export const createPlaybackOps = (
+  context: ADContextPlayerOpContext,
+  getPlayPostroll: () => IO.IO<void>,
+): PlaybackOps => {
+  const { stateRef, videoAdapter, adContext, SDK, logger, emit } = context;
 
   const onTimeUpdate = (): void => {
     pipe(
       stateRef.read,
       IO.flatMap((state) =>
         pipe(
-          video.getCurrentTime,
+          videoAdapter.getCurrentTime,
           IO.flatMap((time) => {
             const overlay = pipe(
               state.overlaySlots,
@@ -71,21 +74,21 @@ export const createPlaybackOps = (context: PlayerOpContext, getPlayPostroll: () 
   const onContentEnded = (): void =>
     pipe(
       logger.info("onContentEnded: content video ended, starting postroll chain"),
-      IO.flatMap(() => video.off("ended", onContentEnded)),
+      IO.flatMap(() => videoAdapter.off("ended", onContentEnded)),
       IO.flatMap(() => () => adContext.setVideoState(SDK.VIDEO_STATE_COMPLETED)),
       IO.flatMap(() => getPlayPostroll()),
     )();
 
   const addVideoListeners: IO.IO<void> = pipe(
     IO.Do,
-    IO.flatMap(() => video.on("timeupdate", onTimeUpdate)),
-    IO.flatMap(() => video.on("ended", onContentEnded)),
+    IO.flatMap(() => videoAdapter.on("timeupdate", onTimeUpdate)),
+    IO.flatMap(() => videoAdapter.on("ended", onContentEnded)),
   );
 
   const removeVideoListeners: IO.IO<void> = pipe(
     IO.Do,
-    IO.flatMap(() => video.off("timeupdate", onTimeUpdate)),
-    IO.flatMap(() => video.off("ended", onContentEnded)),
+    IO.flatMap(() => videoAdapter.off("timeupdate", onTimeUpdate)),
+    IO.flatMap(() => videoAdapter.off("ended", onContentEnded)),
   );
 
   const playContent = (src: string, startAt: number): IO.IO<void> =>
@@ -100,9 +103,9 @@ export const createPlaybackOps = (context: PlayerOpContext, getPlayPostroll: () 
         ),
       ),
       IO.flatMap(() => logger.debug("playContent: phase -> Content, currentSlot -> None")),
-      IO.flatMap(() => video.enableControls),
-      IO.flatMap(() => video.seek(src, startAt)),
-      IO.flatMap(() => video.play),
+      IO.flatMap(() => videoAdapter.enableControls),
+      IO.flatMap(() => videoAdapter.seek(src, startAt)),
+      IO.flatMap(() => videoAdapter.play),
       IO.flatMap(() => addVideoListeners),
       IO.flatMap(() => () => adContext.setVideoState(SDK.VIDEO_STATE_PLAYING)),
       IO.flatMap(() => () => emit({ _tag: "ContentResumed" })),

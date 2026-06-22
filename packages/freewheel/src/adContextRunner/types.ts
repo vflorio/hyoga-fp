@@ -5,7 +5,7 @@ import type * as T from "fp-ts/Task";
 import type { FreeWheel, Model } from "../freeWheel";
 import type { PlayerState } from "./state";
 
-export interface VideoPlayer {
+export interface ADContextPlayerVideoAdapter {
   readonly play: IO.IO<void>;
   readonly pause: IO.IO<void>;
   readonly getCurrentTime: IO.IO<number>;
@@ -16,22 +16,22 @@ export interface VideoPlayer {
   readonly off: (event: "timeupdate" | "ended", handler: () => void) => IO.IO<void>;
 }
 
-export interface PlayerDeps {
+export interface ADContextPlayerPlayerDeps {
   readonly logger: Logger;
   readonly SDK: FreeWheel.SDK;
   readonly adContext: FreeWheel.AdContext;
-  readonly video: VideoPlayer;
+  readonly videoAdapter: ADContextPlayerVideoAdapter;
   readonly setupBusinessAdContext: IO.IO<void>;
   readonly emit: (event: Model.SDKEvent) => void;
 }
 
-export interface Player {
+export interface ADContextPlayer {
   readonly requestAds: T.Task<void>;
   readonly pause: IO.IO<void>;
   readonly resume: IO.IO<void>;
   readonly dispose: IO.IO<void>;
 }
 
-export interface PlayerOpContext extends PlayerDeps {
+export interface ADContextPlayerOpContext extends ADContextPlayerPlayerDeps {
   readonly stateRef: IORef.IORef<PlayerState>;
 }

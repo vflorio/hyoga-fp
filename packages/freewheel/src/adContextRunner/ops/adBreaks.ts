@@ -3,9 +3,9 @@ import * as IO from "fp-ts/IO";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
-import type * as FreeWheel from "../../freeWheel";
+import type { FreeWheel } from "../../freeWheel";
 import * as Transitions from "../transitions";
-import type { PlayerOpContext } from "../types";
+import type { ADContextPlayerOpContext } from "../types";
 import type { PlaybackOps } from "./playback";
 
 export interface AdBreakOps {
@@ -17,7 +17,11 @@ export interface AdBreakOps {
   readonly onContentResumeRequest: () => void;
 }
 
-export const createAdBreakOps = (context: PlayerOpContext, playback: PlaybackOps, dispose: IO.IO<void>): AdBreakOps => {
+export const createAdBreakOps = (
+  context: ADContextPlayerOpContext,
+  playback: PlaybackOps,
+  dispose: IO.IO<void>,
+): AdBreakOps => {
   const { stateRef, adContext, SDK, logger, emit } = context;
 
   const playPreroll: IO.IO<void> = pipe(
@@ -120,14 +124,14 @@ export const createAdBreakOps = (context: PlayerOpContext, playback: PlaybackOps
             .with({ _tag: "Content" }, () => constVoid)
             .otherwise(() => stateRef.modify(Transitions.setPhase({ _tag: "Content" }))),
         ),
-        IO.flatMap(() => context.video.seek(state.contentSrc, resumeAt)),
+        IO.flatMap(() => context.videoAdapter.seek(state.contentSrc, resumeAt)),
         IO.flatMap(() => playback.addVideoListeners),
         IO.flatMap(() =>
           match(wasUserResumed)
             .with(true, () =>
               pipe(
                 logger.debug("restoreAfterPauseMidroll: user already resumed, playing"),
-                IO.flatMap(() => context.video.play),
+                IO.flatMap(() => context.videoAdapter.play),
               ),
             )
             .otherwise(() =>

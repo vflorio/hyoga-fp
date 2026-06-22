@@ -3,22 +3,22 @@ import * as IORef from "fp-ts/IORef";
 import { pipe } from "fp-ts/lib/function";
 import * as T from "fp-ts/Task";
 import * as Listeners from "../listeners";
-import * as Transitions from "../player/transitions";
 import { createAdBreakOps } from "./ops/adBreaks";
 import { createControlOps } from "./ops/controls";
 import { createPlaybackOps } from "./ops/playback";
 import { createRequestOps } from "./ops/request";
 import { createInitialState, type PlayerState } from "./state";
-import type { Player, PlayerDeps, PlayerOpContext } from "./types";
+import * as Transitions from "./transitions";
+import type { ADContextPlayer, ADContextPlayerOpContext, ADContextPlayerPlayerDeps } from "./types";
 
-export const createAdPlayer = (deps: PlayerDeps): Player => {
-  const { logger, adContext, video, SDK, emit } = deps;
+export const createADContextPlayer = (deps: ADContextPlayerPlayerDeps): ADContextPlayer => {
+  const { logger, adContext, videoAdapter, SDK, emit } = deps;
 
   const diagnostics = Listeners.createDiagnostics({ logger, adContext, SDK, emit });
-  const videoSrc = video.getSrc();
+  const videoSrc = videoAdapter.getSrc();
   const stateRef = IORef.newIORef<PlayerState>(createInitialState(videoSrc))();
 
-  const context: PlayerOpContext = { ...deps, stateRef };
+  const context: ADContextPlayerOpContext = { ...deps, stateRef };
 
   // Quando arriviamo a questo punto significa che abbiamo consumato tutti gli slots di postroll e
   // la state-machine è arrivata alla fine, quindi è necessario istanziarne una nuova

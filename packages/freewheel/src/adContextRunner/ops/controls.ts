@@ -4,15 +4,15 @@ import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
 import * as Transitions from "../transitions";
-import type { PlayerOpContext } from "../types";
+import type { ADContextPlayerOpContext } from "../types";
 
 export interface ControlOps {
   readonly pause: IO.IO<void>;
   readonly resume: IO.IO<void>;
 }
 
-export const createControlOps = (context: PlayerOpContext, removeVideoListeners: IO.IO<void>): ControlOps => {
-  const { stateRef, video, adContext, SDK, logger } = context;
+export const createControlOps = (context: ADContextPlayerOpContext, removeVideoListeners: IO.IO<void>): ControlOps => {
+  const { stateRef, videoAdapter, adContext, SDK, logger } = context;
 
   const pause: IO.IO<void> = pipe(
     stateRef.read,
@@ -29,10 +29,10 @@ export const createControlOps = (context: PlayerOpContext, removeVideoListeners:
             .with(true, () =>
               pipe(
                 logger.info("pause: content phase, triggering pause-midroll"),
-                IO.flatMap(() => video.pause),
+                IO.flatMap(() => videoAdapter.pause),
                 IO.flatMap(() =>
                   pipe(
-                    video.getCurrentTime,
+                    videoAdapter.getCurrentTime,
                     IO.tap((t) =>
                       logger.debug(`pause: content paused at t=${t.toFixed(2)}s, pausing with pause-midroll`),
                     ),
@@ -50,7 +50,7 @@ export const createControlOps = (context: PlayerOpContext, removeVideoListeners:
             .otherwise(() =>
               pipe(
                 logger.debug("pause: content phase, no pause-midroll available, pausing video"),
-                IO.flatMap(() => video.pause),
+                IO.flatMap(() => videoAdapter.pause),
               ),
             ),
         )
@@ -110,7 +110,7 @@ export const createControlOps = (context: PlayerOpContext, removeVideoListeners:
           .with({ _tag: "Content" }, () =>
             pipe(
               logger.debug("resume: Content phase, resuming video playback"),
-              IO.flatMap(() => video.play),
+              IO.flatMap(() => videoAdapter.play),
             ),
           )
           .otherwise(() =>
