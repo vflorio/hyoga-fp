@@ -1,42 +1,42 @@
 type Listener<T> = (data: T) => void;
 
 export class EventStream<T> implements AsyncIterable<T> {
-  #listeners = new Set<Listener<T>>();
-  //#closed = false;
+  listeners = new Set<Listener<T>>();
+  closed = false;
 
-  #tx: BroadcastChannel;
-  #rx: BroadcastChannel;
+  tx: BroadcastChannel;
+  rx: BroadcastChannel;
 
   [Symbol.asyncIterator](): AsyncIterator<T> {
     return this.iter();
   }
 
   constructor(name: string) {
-    this.#tx = new BroadcastChannel(name);
-    this.#rx = new BroadcastChannel(name);
+    this.tx = new BroadcastChannel(name);
+    this.rx = new BroadcastChannel(name);
 
     // Listen for messages on the receive channel
-    this.#rx.onmessage = (ev) => {
+    this.rx.onmessage = (ev) => {
       this.#broadcast(ev.data);
     };
   }
 
   #broadcast(data: T) {
-    for (const listener of this.#listeners) {
+    for (const listener of this.listeners) {
       listener(data);
     }
   }
 
   close(): void {
-    //this.#closed = true;
-    this.#listeners.clear();
-    this.#tx.close();
-    this.#rx.close();
+    this.closed = true;
+    this.listeners.clear();
+    this.tx.close();
+    this.rx.close();
   }
 
   broadcast(data: T): void {
-    //if (this.#closed) return;
-    this.#tx.postMessage(data);
+    if (this.closed) return;
+    this.tx.postMessage(data);
   }
 
   iter(): AsyncIterator<T> {
@@ -52,12 +52,12 @@ export class EventStream<T> implements AsyncIterable<T> {
   }
 
   subscribe(listener: Listener<T>): () => void {
-    this.#listeners.add(listener);
+    this.listeners.add(listener);
     return () => this.unsubscribe(listener);
   }
 
   unsubscribe(listener: Listener<T>): void {
-    this.#listeners.delete(listener);
+    this.listeners.delete(listener);
   }
 }
 

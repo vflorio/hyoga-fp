@@ -40,6 +40,8 @@ const adContextConfig: FreeWheelPlayer.Config = {
   ],
   keyValues: [{ key: "skippable", value: "enabled" }],
 };
+// Creiamo un player parlialmente preconfigurato con una configurazione dell'AdContext standard
+const createPlayerWithAdContext = FreeWheelPlayer.createPlayerFrom(adContextConfig);
 
 export const useFreeWheelPlayer = () => {
   const SDK = (window as any).tv.freewheel.SDK as FreeWheel.SDK;
@@ -52,17 +54,17 @@ export const useFreeWheelPlayer = () => {
   // Il lifecycle dell'EventStream è gestito dal consumer del player
   const eventStream = useRef(new EventStream<Model.SDKEvent>("freewheel-events"));
 
-  // Creiamo un player parlialmente preconfigurato con una configurazione dell'AdContext standard
-  const createPlayer = FreeWheelPlayer.createPlayerFrom(adContextConfig);
+  const [runnerState, setRunnerState] = useState<ContextRunner.PlayerState | null>(null);
 
-  const player = useMemo(
+  const runner = useMemo(
     () =>
       videoElement &&
-      createPlayer({
+      createPlayerWithAdContext({
         SDK,
         logger: createLogger("FreeWheelPlayer", config.logLevel satisfies LogLevel),
         videoAdapter: createVideoAdapterFrom(videoElement),
         emit: eventStream.current.broadcast,
+        emitStateChange: setRunnerState,
       }),
     [videoElement],
   );
@@ -89,5 +91,5 @@ export const useFreeWheelPlayer = () => {
     };
   }, []);
 
-  return { videoRef, player, listen, close: () => eventStream.current.close() };
+  return { videoRef, player: runner, state: runnerState };
 };

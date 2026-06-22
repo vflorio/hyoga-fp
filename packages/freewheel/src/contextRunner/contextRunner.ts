@@ -14,7 +14,7 @@ import { createInitialState, type PlayerState } from "./state";
 import * as Transitions from "./transitions";
 
 export const createContextRunner = (deps: ContextRunnerDeps): ContextRunner => {
-  const { logger, adContext, videoAdapter, SDK, emit } = deps;
+  const { logger, adContext, videoAdapter, SDK, emit, emitStateChange } = deps;
 
   const diagnostics = createDiagnostics({ logger, adContext, SDK, emit });
   const videoSrc = videoAdapter.getSrc();
@@ -26,9 +26,8 @@ export const createContextRunner = (deps: ContextRunnerDeps): ContextRunner => {
       IO.tap((state) => logger.debug(`[ContextRunner] setState: CURRENT -> "${state.phase._tag}"`, state)),
       IO.flatMap(() => stateRef.modify(f)),
       IO.flatMap(() => stateRef.read),
-      IO.flatMap((newState) => logger.debug(`[ContextRunner] setState: NEXT -> "${newState.phase._tag}"`, newState)),
-      // TODO: (Streams) Emit StateChanged
-      //IO.flatMap((newState) => () => emit({ _tag: "StateChanged", state: newState })),
+      IO.tap((newState) => logger.debug(`[ContextRunner] setState: NEXT -> "${newState.phase._tag}"`, newState)),
+      IO.flatMap((newState) => () => emitStateChange(newState)),
     );
 
   const context: ContextRunnerOpContext = { ...deps, setState, getState: stateRef.read };

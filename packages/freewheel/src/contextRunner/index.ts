@@ -6,6 +6,7 @@ import type { FreeWheel, Model } from "../freeWheel";
 import type { PlayerState } from "./state";
 
 export { createContextRunner } from "./contextRunner";
+export * from "./state";
 
 export interface ContextRunnerVideoAdapter {
   readonly play: IO.IO<void>;
@@ -25,6 +26,7 @@ export interface ContextRunnerDeps {
   readonly videoAdapter: ContextRunnerVideoAdapter;
   readonly setupBusinessAdContext: IO.IO<void>;
   readonly emit: (event: Model.SDKEvent) => void;
+  readonly emitStateChange: (state: PlayerState) => void;
 }
 
 export interface ContextRunner {

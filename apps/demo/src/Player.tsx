@@ -1,4 +1,4 @@
-import { AppBar, Box, Button, Link, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Button, Link, Stack, Toolbar, Typography } from "@mui/material";
 import { useCallback, useState } from "react";
 import { match } from "ts-pattern";
 import { useFreeWheelPlayer } from "./useFreeWheelPlayer";
@@ -8,7 +8,7 @@ export type ButtonPhase = "init" | "playing" | "paused";
 export function Player() {
   const [phase, setPhase] = useState<ButtonPhase>("init");
 
-  const { videoRef, player } = useFreeWheelPlayer();
+  const { videoRef, player, state } = useFreeWheelPlayer();
 
   const handleClick = useCallback(() => {
     if (!player) return;
@@ -46,16 +46,28 @@ export function Player() {
         <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", lg: "row" } }}>
           {/* Left panel */}
           <Box sx={{ flex: 1 }}>
-            <Box id="displayBase" sx={{ position: "relative" }}>
-              <video
-                ref={videoRef}
-                id="videoPlayer"
-                playsInline
-                style={{ height: 480, width: "100%", backgroundColor: "#000" }}
-              >
-                <source src="https://ott.dolby.com/OnDelKits/AC-4/Dolby_AC-4_Online_Delivery_Kit_1.5/Test_Signals/muxed_streams/MP4/Example/Audio_ID_720p_25fps_h264_2ch_64kbps_ac4.mp4" />
-              </video>
-            </Box>
+            <Stack direction="row">
+              <Box id="displayBase" sx={{ position: "relative" }}>
+                <video
+                  ref={videoRef}
+                  id="videoPlayer"
+                  playsInline
+                  style={{ height: 480, width: "100%", backgroundColor: "#000" }}
+                >
+                  <source src="https://ott.dolby.com/OnDelKits/AC-4/Dolby_AC-4_Online_Delivery_Kit_1.5/Test_Signals/muxed_streams/MP4/Example/Audio_ID_720p_25fps_h264_2ch_64kbps_ac4.mp4" />
+                </video>
+              </Box>
+              <pre style={{ maxWidth: "400px" }}>
+                {JSON.stringify(
+                  {
+                    phase,
+                    state,
+                  },
+                  null,
+                  2,
+                )}
+              </pre>
+            </Stack>
 
             <Button variant="contained" color="info" fullWidth onClick={handleClick}>
               {phase === "init" ? "Play" : phase === "playing" ? "Pause" : "Resume"}
@@ -80,6 +92,7 @@ export function Player() {
           {/* Right panel */}
           <Box sx={{ flex: 1 }} id="companionContainer">
             <Typography>Companion 300x250</Typography>
+
             <span id="companionSlot" className="_fwph">
               <form id="_fw_form_companionSlot" style={{ display: "none" }}>
                 <input
