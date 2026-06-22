@@ -2,12 +2,17 @@ import * as IO from "fp-ts/IO";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import type { Model } from "../freeWheel";
-import type { DiagnosticDeps } from "./diagnostics";
+import type { DiagnosticDeps, DiagnosticsDomainHandler } from "./diagnostics";
 
-export type CategoryPair = { register: () => void; remove: () => void };
+export type { DiagnosticsDomainHandler };
 
-// Il Dispatch applica la funzione di trasformazione da evento raw a evento ADT
-// logga e lo trasmette attraverso la funzione emit delle dipendenze
+// Il Dispatch funziona da wrapper all'emit delle dipendenze
+// effettua:
+// 1. parsing dell'evento raw in un ADT
+// 2. logga l'evento
+// 3. lo trasmette attraverso la funzione emit delle dipendenze
+// Viene utilizzato solo all'interno dei DiagnosticsDomainHandler per gestire la callback di un evento dell'SDK
+// TODO: fare una funzione di parsing esplicita con Either
 export const dispatch = (
   deps: DiagnosticDeps,
   eventName: string,

@@ -1,7 +1,7 @@
-import { type CategoryPair, dispatch } from "..";
+import { type DiagnosticsDomainHandler, dispatch } from "..";
 import type { DiagnosticDeps } from "../diagnostics";
 
-export const withSlotLifecycle = (deps: DiagnosticDeps): CategoryPair => {
+export const withSlotLifecycle = (deps: DiagnosticDeps): DiagnosticsDomainHandler => {
   const { adContext, SDK } = deps;
 
   // TODO: Migliorare la type-safety del parsing dell'event e migrare a unkwnown

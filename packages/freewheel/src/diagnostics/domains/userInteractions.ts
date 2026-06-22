@@ -1,7 +1,7 @@
-import { type CategoryPair, dispatch, extractAdId } from "..";
+import { type DiagnosticsDomainHandler, dispatch, extractAdId } from "..";
 import type { DiagnosticDeps } from "../diagnostics";
 
-export const withUserInteractions = (deps: DiagnosticDeps): CategoryPair => {
+export const withUserInteractions = (deps: DiagnosticDeps): DiagnosticsDomainHandler => {
   const { adContext, SDK } = deps;
 
   const adapter = {

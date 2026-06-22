@@ -38,3 +38,5 @@ export const createDiagnostics = (deps: DiagnosticDeps): DiagnosticRegistration 
     remove: () => categories.forEach((category) => category.remove()),
   };
 };
+
+export type DiagnosticsDomainHandler = { register: () => void; remove: () => void };

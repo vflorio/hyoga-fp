@@ -1,7 +1,7 @@
-import { type CategoryPair, dispatch } from "..";
+import { type DiagnosticsDomainHandler, dispatch } from "..";
 import type { DiagnosticDeps } from "../diagnostics";
 
-export const withContentState = (deps: DiagnosticDeps): CategoryPair => {
+export const withContentState = (deps: DiagnosticDeps): DiagnosticsDomainHandler => {
   const { adContext, SDK } = deps;
 
   const adapter = {
