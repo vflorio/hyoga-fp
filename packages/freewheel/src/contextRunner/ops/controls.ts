@@ -19,7 +19,7 @@ export const createControlOps = (context: ContextRunnerOpContext, playback: Play
     getState,
     IO.flatMap((state): IO.IO<void> => {
       const hasPauseMidroll = pipe(
-        state.pauseMidrollSlots,
+        state.pauseMidrolls,
         RA.head,
         O.exists((slot) => slot.getAdCount() !== 0),
       );

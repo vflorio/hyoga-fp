@@ -14,11 +14,11 @@ describe("createInitialState", () => {
   });
 
   it("initializes all slot arrays as empty", () => {
-    expect(state.prerollSlots).toEqual([]);
-    expect(state.midrollSlots).toEqual([]);
-    expect(state.overlaySlots).toEqual([]);
-    expect(state.postrollSlots).toEqual([]);
-    expect(state.pauseMidrollSlots).toEqual([]);
+    expect(state.prerolls).toEqual([]);
+    expect(state.midrolls).toEqual([]);
+    expect(state.overlays).toEqual([]);
+    expect(state.postrolls).toEqual([]);
+    expect(state.pauseMidrolls).toEqual([]);
   });
 
   it("initializes currentSlot as None", () => {

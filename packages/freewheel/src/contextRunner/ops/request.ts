@@ -57,17 +57,7 @@ export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: I
                 .length,
             }),
           ),
-          IO.flatMap(() =>
-            setState(
-              Transitions.applySlots({
-                TIME_POSITION_CLASS_PREROLL: SDK.TIME_POSITION_CLASS_PREROLL,
-                TIME_POSITION_CLASS_MIDROLL: SDK.TIME_POSITION_CLASS_MIDROLL,
-                TIME_POSITION_CLASS_OVERLAY: SDK.TIME_POSITION_CLASS_OVERLAY,
-                TIME_POSITION_CLASS_POSTROLL: SDK.TIME_POSITION_CLASS_POSTROLL,
-                TIME_POSITION_CLASS_PAUSE_MIDROLL: SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL,
-              })(slots),
-            ),
-          ),
+          IO.flatMap(() => setState(Transitions.applySlots(SDK)(slots))),
           IO.flatMap(() => logger.debug("[RequestOps] requestAds: state updated, starting preroll chain")),
           IO.flatMap(() => playPreroll),
         ),

@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
-import type { AdSlot, TimePositionClassIdentifiers } from "../freeWheel/freeWheel";
+import type { AdSlot, SDK } from "../freeWheel/freeWheel";
 import { createInitialState, type PlayerState } from "./state";
 import {
   applySlots,
@@ -23,13 +23,13 @@ const mockSlot = (timePositionClass: string, timePosition = 0): AdSlot => ({
   resume: () => {},
 });
 
-const timePositionClassIds: TimePositionClassIdentifiers = {
+const sdk = {
   TIME_POSITION_CLASS_PREROLL: "preroll",
   TIME_POSITION_CLASS_MIDROLL: "midroll",
   TIME_POSITION_CLASS_OVERLAY: "overlay",
   TIME_POSITION_CLASS_POSTROLL: "postroll",
   TIME_POSITION_CLASS_PAUSE_MIDROLL: "pause_midroll",
-};
+} as SDK;
 
 const baseState: PlayerState = createInitialState("video.mp4");
 
@@ -49,7 +49,7 @@ describe("setPhase", () => {
   it("preserves all other state fields", () => {
     const result = setPhase({ _tag: "Content" })(baseState);
     expect(result.contentSrc).toBe(baseState.contentSrc);
-    expect(result.prerollSlots).toBe(baseState.prerollSlots);
+    expect(result.prerolls).toBe(baseState.prerolls);
   });
 });
 
@@ -63,32 +63,32 @@ describe("applySlots", () => {
   const allSlots = [preroll, midroll, overlay, postroll, pauseMidroll];
 
   it("categorizes slots into their respective buckets", () => {
-    const result = applySlots(timePositionClassIds)(allSlots)(baseState);
+    const result = applySlots(sdk satisfies SDK)(allSlots)(baseState);
 
-    expect(result.prerollSlots).toEqual([preroll]);
-    expect(result.midrollSlots).toEqual([midroll]);
-    expect(result.overlaySlots).toEqual([overlay]);
-    expect(result.postrollSlots).toEqual([postroll]);
-    expect(result.pauseMidrollSlots).toEqual([pauseMidroll]);
+    expect(result.prerolls).toEqual([preroll]);
+    expect(result.midrolls).toEqual([midroll]);
+    expect(result.overlays).toEqual([overlay]);
+    expect(result.postrolls).toEqual([postroll]);
+    expect(result.pauseMidrolls).toEqual([pauseMidroll]);
   });
 
   it("handles multiple slots of the same type", () => {
     const pre1 = mockSlot("preroll");
     const pre2 = mockSlot("preroll");
-    const result = applySlots(timePositionClassIds)([pre1, pre2])(baseState);
+    const result = applySlots(sdk)([pre1, pre2])(baseState);
 
-    expect(result.prerollSlots).toEqual([pre1, pre2]);
-    expect(result.midrollSlots).toEqual([]);
+    expect(result.prerolls).toEqual([pre1, pre2]);
+    expect(result.midrolls).toEqual([]);
   });
 
   it("results in empty arrays when no slots match", () => {
-    const result = applySlots(timePositionClassIds)([])(baseState);
+    const result = applySlots(sdk)([])(baseState);
 
-    expect(result.prerollSlots).toEqual([]);
-    expect(result.midrollSlots).toEqual([]);
-    expect(result.overlaySlots).toEqual([]);
-    expect(result.postrollSlots).toEqual([]);
-    expect(result.pauseMidrollSlots).toEqual([]);
+    expect(result.prerolls).toEqual([]);
+    expect(result.midrolls).toEqual([]);
+    expect(result.overlays).toEqual([]);
+    expect(result.postrolls).toEqual([]);
+    expect(result.pauseMidrolls).toEqual([]);
   });
 });
 
@@ -96,12 +96,12 @@ describe("popPreroll", () => {
   const slot = mockSlot("preroll");
   const stateWithPrerolls: PlayerState = {
     ...baseState,
-    prerollSlots: [slot, mockSlot("preroll")],
+    prerolls: [slot, mockSlot("preroll")],
   };
 
   it("removes the first preroll slot", () => {
     const result = popPreroll(slot)(stateWithPrerolls);
-    expect(result.prerollSlots).toHaveLength(1);
+    expect(result.prerolls).toHaveLength(1);
   });
 
   it("sets currentSlot to the given slot", () => {
@@ -119,12 +119,12 @@ describe("popPostroll", () => {
   const slot = mockSlot("postroll");
   const stateWithPostrolls: PlayerState = {
     ...baseState,
-    postrollSlots: [slot, mockSlot("postroll")],
+    postrolls: [slot, mockSlot("postroll")],
   };
 
   it("removes the first postroll slot", () => {
     const result = popPostroll(slot)(stateWithPostrolls);
-    expect(result.postrollSlots).toHaveLength(1);
+    expect(result.postrolls).toHaveLength(1);
   });
 
   it("sets currentSlot to the given slot", () => {
@@ -142,13 +142,13 @@ describe("popMidroll", () => {
   const slot = mockSlot("midroll");
   const stateWithMidrolls: PlayerState = {
     ...baseState,
-    midrollSlots: [slot, mockSlot("midroll")],
+    midrolls: [slot, mockSlot("midroll")],
     phase: { _tag: "Content" },
   };
 
   it("removes the first midroll slot", () => {
     const result = popMidroll(slot, 42.5)(stateWithMidrolls);
-    expect(result.midrollSlots).toHaveLength(1);
+    expect(result.midrolls).toHaveLength(1);
   });
 
   it("sets currentSlot to the given slot", () => {
@@ -171,13 +171,13 @@ describe("popPauseMidroll", () => {
   const pauseSlot = mockSlot("pause_midroll");
   const stateWithPauseMidrolls: PlayerState = {
     ...baseState,
-    pauseMidrollSlots: [pauseSlot, mockSlot("pause_midroll")],
+    pauseMidrolls: [pauseSlot, mockSlot("pause_midroll")],
     phase: { _tag: "Content" },
   };
 
   it("removes the first pause-midroll slot", () => {
     const result = popPauseMidroll(30)(stateWithPauseMidrolls);
-    expect(result.pauseMidrollSlots).toHaveLength(1);
+    expect(result.pauseMidrolls).toHaveLength(1);
   });
 
   it("sets currentSlot to None (pause-midrolls don't track a slot ref)", () => {
@@ -203,31 +203,31 @@ describe("dropOverlayNear", () => {
 
   const stateWithOverlays: PlayerState = {
     ...baseState,
-    overlaySlots: [overlay10, overlay20, overlay30],
+    overlays: [overlay10, overlay20, overlay30],
   };
 
   it("removes overlays within 0.5s of the given time", () => {
     const result = dropOverlayNear(10.2)(stateWithOverlays);
-    expect(result.overlaySlots).toEqual([overlay20, overlay30]);
+    expect(result.overlays).toEqual([overlay20, overlay30]);
   });
 
   it("keeps overlays exactly 0.5s away", () => {
     const result = dropOverlayNear(9.5)(stateWithOverlays);
-    expect(result.overlaySlots).toEqual([overlay10, overlay20, overlay30]);
+    expect(result.overlays).toEqual([overlay10, overlay20, overlay30]);
   });
 
   it("removes nothing when no overlays are near", () => {
     const result = dropOverlayNear(15)(stateWithOverlays);
-    expect(result.overlaySlots).toEqual([overlay10, overlay20, overlay30]);
+    expect(result.overlays).toEqual([overlay10, overlay20, overlay30]);
   });
 
   it("can remove multiple overlays at the same time position", () => {
     const overlay10b = mockSlot("overlay", 10.1);
     const state: PlayerState = {
       ...baseState,
-      overlaySlots: [overlay10, overlay10b, overlay20],
+      overlays: [overlay10, overlay10b, overlay20],
     };
     const result = dropOverlayNear(10)(state);
-    expect(result.overlaySlots).toEqual([overlay20]);
+    expect(result.overlays).toEqual([overlay20]);
   });
 });

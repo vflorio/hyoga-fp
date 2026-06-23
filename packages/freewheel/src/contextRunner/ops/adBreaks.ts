@@ -24,7 +24,7 @@ export const createAdBreakOps = (context: ContextRunnerOpContext, playback: Play
     getState,
     IO.flatMap((state) =>
       pipe(
-        RA.head(state.prerollSlots),
+        RA.head(state.prerolls),
         O.match(
           () =>
             pipe(
@@ -33,7 +33,7 @@ export const createAdBreakOps = (context: ContextRunnerOpContext, playback: Play
             ),
           (slot) =>
             pipe(
-              logger.info(`[AdBreakOps] playPreroll: playing slot (${state.prerollSlots.length} remaining)`),
+              logger.info(`[AdBreakOps] playPreroll: playing slot (${state.prerolls.length} remaining)`),
               IO.flatMap(() => setState(Transitions.popPreroll(slot))),
               IO.flatMap(() => () => slot.play()),
             ),
@@ -46,12 +46,12 @@ export const createAdBreakOps = (context: ContextRunnerOpContext, playback: Play
     getState,
     IO.flatMap((state) =>
       pipe(
-        RA.head(state.postrollSlots),
+        RA.head(state.postrolls),
         O.match(
           () => pipe(logger.debug("[AdBreakOps] playPostroll: no postrolls remaining"), IO.asUnit),
           (slot) =>
             pipe(
-              logger.info(`[AdBreakOps] playPostroll: playing slot (${state.postrollSlots.length} remaining)`),
+              logger.info(`[AdBreakOps] playPostroll: playing slot (${state.postrolls.length} remaining)`),
               IO.flatMap(() => setState(Transitions.popPostroll(slot))),
               IO.flatMap(() => () => slot.play()),
             ),

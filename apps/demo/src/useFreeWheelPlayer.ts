@@ -1,5 +1,5 @@
 import { createLogger, EventStream, type LogLevel } from "@hyoga-fp/core";
-import { type ContextRunner, type FreeWheel, FreeWheelPlayer, type Model } from "@hyoga-fp/freewheel";
+import { type Config, type ContextRunner, FreeWheelPlayer, type FwSDK, type Model } from "@hyoga-fp/freewheel";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { config } from "./env";
@@ -20,7 +20,7 @@ const createVideoAdapterFrom = (videoEl: HTMLVideoElement): ContextRunner.Contex
   off: (event, handler) => () => videoEl.removeEventListener(event, handler),
 });
 
-const adContextConfig: FreeWheelPlayer.Config = {
+const adContextConfig: Config.Config = {
   serverURL: config.serverURL,
   profileId: config.profileId,
   videoAssetId: config.videoAssetId,
@@ -44,7 +44,7 @@ const adContextConfig: FreeWheelPlayer.Config = {
 const createPlayerWithAdContext = FreeWheelPlayer.createPlayerFrom(adContextConfig);
 
 export const useFreeWheelPlayer = () => {
-  const SDK = (window as any).tv.freewheel.SDK as FreeWheel.SDK;
+  const SDK = (window as any).tv.freewheel.SDK as FwSDK.SDK;
 
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
   const videoRef = useCallback((node: HTMLVideoElement | null) => setVideoElement(node), []);

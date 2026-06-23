@@ -1,41 +1,35 @@
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
+import { FwADSlot, type FwSDK } from "..";
 import type { FreeWheel } from "../freeWheel";
-import type { PlaybackPhase, PlayerState } from "./state";
+import { getStateSlotForSlotClassId, type PlaybackPhase, type PlayerState } from "./state";
 
 export const setPhase =
   (phase: PlaybackPhase) =>
-  (state: PlayerState): PlayerState => {
-    console.log("setPhase", { phase, state });
-    return { ...state, phase };
-  };
+  (state: PlayerState): PlayerState => ({ ...state, phase });
 
 export const applySlots =
-  (timePositionClassIds: FreeWheel.TimePositionClassIdentifiers) =>
+  (sdk: FwSDK.SDK) =>
   (allSlots: ReadonlyArray<FreeWheel.AdSlot>) =>
-  (state: PlayerState): PlayerState => {
-    const by = (classId: string) =>
+  (state: PlayerState): PlayerState => ({
+    ...state,
+    ...Object.fromEntries(
       pipe(
         allSlots,
-        RA.filter((slot) => slot.getTimePositionClass() === classId),
-      );
-
-    return {
-      ...state,
-      prerollSlots: by(timePositionClassIds.TIME_POSITION_CLASS_PREROLL),
-      midrollSlots: by(timePositionClassIds.TIME_POSITION_CLASS_MIDROLL),
-      overlaySlots: by(timePositionClassIds.TIME_POSITION_CLASS_OVERLAY),
-      postrollSlots: by(timePositionClassIds.TIME_POSITION_CLASS_POSTROLL),
-      pauseMidrollSlots: by(timePositionClassIds.TIME_POSITION_CLASS_PAUSE_MIDROLL),
-    };
-  };
+        FwADSlot.groupByTimePositionClass,
+        Object.entries,
+        RA.map(([key, slots]) => [getStateSlotForSlotClassId(sdk)(key), FwADSlot.sortByTimePosition(slots)] as const),
+        RA.filter(([key]) => key !== "notSupported"),
+      ),
+    ),
+  });
 
 export const popPreroll =
   (slot: FreeWheel.AdSlot) =>
   (state: PlayerState): PlayerState => ({
     ...state,
-    prerollSlots: RA.dropLeft(1)(state.prerollSlots),
+    prerolls: RA.dropLeft(1)(state.prerolls),
     currentSlot: O.some(slot),
     phase: { _tag: "Preroll" },
   });
@@ -44,7 +38,7 @@ export const popPostroll =
   (slot: FreeWheel.AdSlot) =>
   (state: PlayerState): PlayerState => ({
     ...state,
-    postrollSlots: RA.dropLeft(1)(state.postrollSlots),
+    postrolls: RA.dropLeft(1)(state.postrolls),
     currentSlot: O.some(slot),
     phase: { _tag: "Postroll" },
   });
@@ -53,7 +47,7 @@ export const popMidroll =
   (slot: FreeWheel.AdSlot, pausedAt: number) =>
   (state: PlayerState): PlayerState => ({
     ...state,
-    midrollSlots: RA.dropLeft(1)(state.midrollSlots),
+    midrolls: RA.dropLeft(1)(state.midrolls),
     currentSlot: O.some(slot),
     contentPausedOn: pausedAt,
     phase: { _tag: "Midroll" },
@@ -63,7 +57,7 @@ export const popPauseMidroll =
   (pausedAt: number) =>
   (state: PlayerState): PlayerState => ({
     ...state,
-    pauseMidrollSlots: RA.dropLeft(1)(state.pauseMidrollSlots),
+    pauseMidrolls: RA.dropLeft(1)(state.pauseMidrolls),
     contentPausedOn: pausedAt,
     currentSlot: O.none,
     phase: { _tag: "PauseMidroll" },
@@ -73,8 +67,8 @@ export const dropOverlayNear =
   (time: number) =>
   (state: PlayerState): PlayerState => ({
     ...state,
-    overlaySlots: pipe(
-      state.overlaySlots,
+    overlays: pipe(
+      state.overlays,
       RA.filter((slot) => Math.abs(slot.getTimePosition() - time) >= 0.5),
     ),
   });

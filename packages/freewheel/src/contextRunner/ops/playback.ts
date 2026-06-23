@@ -24,13 +24,13 @@ export const createPlaybackOps = (
   const onContentTimeUpdate = (): void => {
     const selectOverlay = (state: PlayerState, time: number) =>
       pipe(
-        state.overlaySlots,
+        state.overlays,
         RA.findFirst((slot) => Math.abs(slot.getTimePosition() - time) < 0.5),
       );
 
     const selectMidroll = (state: PlayerState, time: number) =>
       pipe(
-        state.midrollSlots,
+        state.midrolls,
         RA.findFirst((slot) => Math.abs(slot.getTimePosition() - time) < 0.5),
       );
 
@@ -76,11 +76,11 @@ export const createPlaybackOps = (
               .when(
                 () =>
                   [
-                    state.overlaySlots.length,
-                    state.midrollSlots.length,
-                    state.prerollSlots.length,
-                    state.postrollSlots.length,
-                    state.pauseMidrollSlots.length,
+                    state.overlays.length,
+                    state.midrolls.length,
+                    state.prerolls.length,
+                    state.postrolls.length,
+                    state.pauseMidrolls.length,
                   ].reduce((prev, current) => prev + current, 0) === 0,
                 () => onNoSlotsRemaining(),
               )
