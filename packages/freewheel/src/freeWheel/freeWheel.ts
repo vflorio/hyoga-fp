@@ -1,7 +1,5 @@
-export type {
-  AdContext,
-  AdSlot,
-} from "../fwADContext";
+export type { AdContext } from "../fwADContext";
+export type { AdSlot } from "../fwADSlot";
 
 export type {
   AdUnitClassIdentifiers,

@@ -3,6 +3,7 @@ import * as IORef from "fp-ts/IORef";
 import type { Endomorphism } from "fp-ts/lib/Endomorphism";
 import { pipe } from "fp-ts/lib/function";
 import * as T from "fp-ts/Task";
+import { FwADSlot } from "..";
 import { createDiagnostics } from "../diagnostics/diagnostics";
 import type { ContextRunner, ContextRunnerDeps, ContextRunnerOpContext } from ".";
 import { type CoreHandlers, registerCoreHandlers, removeCoreHandlers } from "./coreHandlers";
@@ -27,6 +28,11 @@ export const createContextRunner = (deps: ContextRunnerDeps): ContextRunner => {
       IO.flatMap(() => stateRef.modify(f)),
       IO.flatMap(() => stateRef.read),
       IO.tap((newState) => logger.debug(`[ContextRunner] setState: NEXT -> "${newState.phase._tag}"`, newState)),
+      IO.tap((slots) =>
+        logger.debug(
+          `[ContextRunner] slots: ${FwADSlot.showAll(FwADSlot.sortByTimePosition([...slots.prerolls, ...slots.midrolls, ...slots.overlays, ...slots.postrolls, ...slots.pauseMidrolls]))}`,
+        ),
+      ),
       IO.flatMap((newState) => () => emitStateChange(newState)),
     );
 

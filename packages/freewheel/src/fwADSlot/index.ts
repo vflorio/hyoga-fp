@@ -48,8 +48,7 @@ export const sortByTimePosition: (slots: ReadonlyArray<AdSlot>) => ReadonlyArray
 // Show
 // -------------------------------------------------------------------------------------
 
-export const show = (slot: AdSlot): string =>
-  `[${slot.getTimePositionClass()}@${slot.getTimePosition()}s](ads:${slot.getAdCount()})`;
+export const show = (slot: AdSlot): string => `[${slot.getTimePositionClass()} @ ${slot.getTimePosition()}s]`;
 
 export const showAll = (slots: ReadonlyArray<AdSlot>): string => pipe(slots, RA.map(show)).join(", ");
 
