@@ -10,15 +10,15 @@ export const onInit = (state: MachineState, instance: FwAdRequestMachineInstance
     IO.tap(() => registerMediaEventListeners(instance.deps.adContext, instance.deps.SDK, instance.mediaEventListeners)),
   );
 
-export const onPreroll = (state: MachineState, instance: FwAdRequestMachineInstance) => pipe(IO.of(state));
+export const onPreroll = (state: MachineState, _instance: FwAdRequestMachineInstance) => pipe(IO.of(state));
 
-export const onContent = (state: MachineState, instance: FwAdRequestMachineInstance) => pipe(IO.of(state));
+export const onContent = (state: MachineState, _instance: FwAdRequestMachineInstance) => pipe(IO.of(state));
 
-export const onMidroll = (state: MachineState, instance: FwAdRequestMachineInstance) => pipe(IO.of(state));
+export const onMidroll = (state: MachineState, _instance: FwAdRequestMachineInstance) => pipe(IO.of(state));
 
-export const onPauseMidroll = (state: MachineState, instance: FwAdRequestMachineInstance) => pipe(IO.of(state));
+export const onPauseMidroll = (state: MachineState, _instance: FwAdRequestMachineInstance) => pipe(IO.of(state));
 
-export const onPostroll = (state: MachineState, instance: FwAdRequestMachineInstance) => pipe(IO.of(state));
+export const onPostroll = (state: MachineState, _instance: FwAdRequestMachineInstance) => pipe(IO.of(state));
 
 export const onDone = (state: MachineState, instance: FwAdRequestMachineInstance) =>
   pipe(

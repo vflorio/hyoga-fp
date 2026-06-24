@@ -36,6 +36,6 @@ export const createPlayerFrom =
     return createContextRunner({
       ...deps,
       adContext,
-      setupBusinessAdContext: FwAdRequest.Setup.setupBusinessDefaults({ SDK: deps.SDK, adContext })(config),
+      setupBusinessAdContext: FwAdRequest.setupBusinessDefaults({ SDK: deps.SDK, adContext })(config),
     });
   };

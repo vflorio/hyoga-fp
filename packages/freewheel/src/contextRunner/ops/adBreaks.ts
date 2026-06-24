@@ -18,7 +18,7 @@ export interface AdBreakOps {
 }
 
 export const createAdBreakOps = (context: ContextRunnerOpContext, playback: PlaybackOps): AdBreakOps => {
-  const { getState, setState, adContext, SDK, logger, emit } = context;
+  const { getState, setState, adContext, SDK, logger /* emit */ } = context;
 
   const playPreroll: IO.IO<void> = pipe(
     getState,
@@ -74,7 +74,9 @@ export const createAdBreakOps = (context: ContextRunnerOpContext, playback: Play
                 SDK.TIME_POSITION_CLASS_POSTROLL,
                 SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL,
               ),
-              () => () => emit({ _tag: "AdBreakStarted" }),
+              () => () => {
+                //emit({ _tag: "AdBreakStarted" });
+              },
             )
             .otherwise(() => constVoid),
         ),

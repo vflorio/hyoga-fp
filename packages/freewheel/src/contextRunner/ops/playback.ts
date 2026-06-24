@@ -19,7 +19,7 @@ export const createPlaybackOps = (
   dispose: IO.IO<void>,
   getPlayPostroll: () => IO.IO<void>, // Cambia a runtime, va trovato un modo alternativo
 ): PlaybackOps => {
-  const { getState, setState, videoAdapter, adContext, SDK, logger, emit } = context;
+  const { getState, setState, videoAdapter, adContext, SDK, logger /* emit */ } = context;
 
   const onContentTimeUpdate = (): void => {
     const selectOverlay = (state: PlayerState, time: number) =>
@@ -41,7 +41,7 @@ export const createPlaybackOps = (
         ),
         IO.flatMap(() => setState(Transitions.dropOverlayNear(time))),
         IO.flatMap(() => () => overlay.value.play()),
-        IO.flatMap(() => () => emit({ _tag: "OverlayShown" })),
+        //IO.flatMap(() => () => emit({ _tag: "OverlayShown" })),
       );
 
     const onMidroll = (midroll: O.Some<FwAdSlot.AdSlot>, time: number) =>
@@ -127,7 +127,7 @@ export const createPlaybackOps = (
       IO.flatMap(() => videoAdapter.play),
       IO.flatMap(() => addVideoListeners),
       IO.flatMap(() => () => adContext.setVideoState(SDK.VIDEO_STATE_PLAYING)),
-      IO.flatMap(() => () => emit({ _tag: "ContentResumed" })),
+      //IO.flatMap(() => () => emit({ _tag: "ContentResumed" })),
     );
 
   return { addVideoListeners, removeVideoListeners, playContent };

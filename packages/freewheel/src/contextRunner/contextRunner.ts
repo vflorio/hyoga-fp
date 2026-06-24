@@ -48,7 +48,7 @@ export const createContextRunner = (deps: ContextRunnerDeps): ContextRunner => {
     IO.flatMap(() => diagnostics.remove),
     IO.flatMap(() => removeCoreHandlers(adContext, SDK, coreHandlers)),
     IO.flatMap(() => () => adContext.dispose()),
-    IO.flatMap(() => () => emit({ _tag: "Complete" })),
+    //IO.flatMap(() => () => emit({ _tag: "Complete" })),
   );
 
   // Lazy references to avoid circular dependencies

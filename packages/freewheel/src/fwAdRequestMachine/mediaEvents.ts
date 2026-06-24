@@ -136,14 +136,14 @@ export const onSlotEnded =
       ),
     );
 
-const addVideoListeners = (deps: FwAdRequestMachineDeps) =>
+const addVideoListeners = (_deps: FwAdRequestMachineDeps) =>
   pipe(
     IO.Do,
     //IO.flatMap(() => deps.getVideoAdapter().on("timeupdate", onContentTimeUpdate)),
     //IO.flatMap(() => deps.getVideoAdapter().on("ended", onContentEnded)),
   );
 
-const removeVideoListeners = (deps: FwAdRequestMachineDeps) =>
+const removeVideoListeners = (_deps: FwAdRequestMachineDeps) =>
   pipe(
     IO.Do,
     //IO.flatMap(() => deps.getVideoAdapter().off("timeupdate", onContentTimeUpdate)),
