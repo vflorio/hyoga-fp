@@ -1,6 +1,11 @@
+import type { Logger } from "@hyoga-fp/core";
+import * as IO from "fp-ts/IO";
+import * as IORef from "fp-ts/IORef";
+import type { Endomorphism } from "fp-ts/lib/Endomorphism";
+import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import { match } from "ts-pattern";
-import type { FwAdSlot, FwSdk } from "..";
+import { FwAdSlot, type FwSdk } from "..";
 
 // Phase
 
@@ -68,3 +73,41 @@ export const getStateSlotForSlotClassId =
       .with(sdk.TIME_POSITION_CLASS_POSTROLL, () => "postrolls" as const)
       .with(sdk.TIME_POSITION_CLASS_PAUSE_MIDROLL, () => "pauseMidrolls" as const)
       .otherwise(() => "notSupported" as const);
+
+interface IMachineStateController {
+  readonly setState: (f: Endomorphism<MachineState>) => IO.IO<void>;
+  readonly getState: IO.IO<MachineState>;
+}
+
+export class Stateful implements IMachineStateController {
+  constructor(
+    private readonly logger: Logger,
+    private readonly state: MachineState,
+  ) {}
+
+  stateRef = IORef.newIORef<MachineState>(this.state)();
+
+  private logStateSlots = (state: MachineState) =>
+    FwAdSlot.showAll(
+      FwAdSlot.sortByTimePosition([
+        ...state.prerolls,
+        ...state.midrolls,
+        ...state.overlays,
+        ...state.postrolls,
+        ...state.pauseMidrolls,
+      ]),
+    );
+
+  public readonly setState = (f: Endomorphism<MachineState>): IO.IO<void> =>
+    pipe(
+      this.stateRef.read,
+      IO.tap((state) => this.logger.debug(`[Stateful] setState: CURRENT -> "${state.phase._tag}"`, state)),
+      IO.flatMap(() => this.stateRef.modify(f)),
+      IO.flatMap(() => this.stateRef.read),
+      IO.tap((newState) => this.logger.debug(`[Stateful] setState: NEXT -> "${newState.phase._tag}"`, newState)),
+      IO.tap((slots) => this.logger.debug(`[Stateful] slots: ${this.logStateSlots(slots)}`)),
+      //IO.flatMap((newState) => () => emitStateChange(newState)),
+    );
+
+  public readonly getState: IO.IO<MachineState> = this.stateRef.read;
+}
