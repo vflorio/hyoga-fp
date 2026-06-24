@@ -7,7 +7,7 @@ import type { FwAdRequestMachine, FwAdRequestMachineDeps } from ".";
 import * as ContentController from "./controllers/content";
 import * as SlotController from "./controllers/slot";
 import * as Effects from "./effects";
-import type * as MediaEvents from "./mediaEvents";
+import type * as MediaEvents from "./events";
 import * as Phase from "./phases";
 import { createInitialState, type MachineState, Stateful, setPhase, whenPhaseIO } from "./state";
 
@@ -24,7 +24,7 @@ declare const actions: {
 export class FwAdRequestMachineInstance implements FwAdRequestMachine {
   state: MachineState = createInitialState(this.deps.getVideoAdapter().getSrc());
 
-  onSlotEndedDecisions = {
+  onSlotEndedEffects = {
     onPreroll: Effects.playPreroll(this.deps),
     onPostroll: Effects.playPostroll(this.deps),
     onMidroll: Effects.restoreAfterMidroll(this.deps),
@@ -33,13 +33,13 @@ export class FwAdRequestMachineInstance implements FwAdRequestMachine {
   };
 
   // Questi rimangono registrati dalla fase di "Init" fino alla "Done"
-  mediaEventListeners: MediaEvents.Handlers = {
+  mediaEventListeners: MediaEvents.CoreHandlers = {
     // Content
     onContentPauseRequest: ContentController.onContentPauseRequest(this.deps),
     onContentResumeRequest: ContentController.onContentResumeRequest(this.deps),
     // Slot
     onSlotStarted: SlotController.onSlotStarted(this.deps),
-    onSlotEnded: SlotController.onSlotEnded(this.deps)(this.onSlotEndedDecisions),
+    onSlotEnded: SlotController.onSlotEnded(this.deps)(this.onSlotEndedEffects),
   };
 
   stateful = new Stateful(

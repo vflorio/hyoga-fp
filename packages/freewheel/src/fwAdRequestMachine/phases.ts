@@ -1,8 +1,8 @@
 import * as IO from "fp-ts/IO";
 import { pipe } from "fp-ts/lib/function";
 import { match } from "ts-pattern";
+import { registerHandlers, removeHandlers } from "./events";
 import type { FwAdRequestMachineInstance } from "./instance";
-import { registerHandlers, removeHandlers } from "./mediaEvents";
 import type { MachineState } from "./state";
 
 // Transition | SetPhase -> StateChange -> InstancePhaseEffect<T>
