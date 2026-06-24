@@ -1,4 +1,4 @@
-import type { FwADSlot } from "..";
+import type { FwAdSlot } from "..";
 
 export interface AdContext {
   setProfile(id: string): void;
@@ -19,7 +19,7 @@ export interface AdContext {
   addKeyValue(key: string, value: string): void;
   addEventListener(event: string, handler: (e: any) => void): void;
   removeEventListener(event: string, handler: (e: any) => void): void;
-  getTemporalSlots(): ReadonlyArray<FwADSlot.AdSlot>;
+  getTemporalSlots(): ReadonlyArray<FwAdSlot.AdSlot>;
   setVideoState(state: string): void;
   submitRequest(): void;
   setParameter(key: string, value: boolean | number, level: string): void;

@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
-import { FwADSlot, type FwSDK } from "..";
+import { FwAdSlot, type FwSdk } from "..";
 import type { FreeWheel } from "../freeWheel";
 import { getStateSlotForSlotClassId, type PlaybackPhase, type PlayerState } from "./state";
 
@@ -10,16 +10,16 @@ export const setPhase =
   (state: PlayerState): PlayerState => ({ ...state, phase });
 
 export const applySlots =
-  (sdk: FwSDK.SDK) =>
+  (sdk: FwSdk.SDK) =>
   (allSlots: ReadonlyArray<FreeWheel.AdSlot>) =>
   (state: PlayerState): PlayerState => ({
     ...state,
     ...Object.fromEntries(
       pipe(
         allSlots,
-        FwADSlot.groupByTimePositionClass,
+        FwAdSlot.groupByTimePositionClass,
         Object.entries,
-        RA.map(([key, slots]) => [getStateSlotForSlotClassId(sdk)(key), FwADSlot.sortByTimePosition(slots)] as const),
+        RA.map(([key, slots]) => [getStateSlotForSlotClassId(sdk)(key), FwAdSlot.sortByTimePosition(slots)] as const),
         RA.filter(([key]) => key !== "notSupported"),
       ),
     ),

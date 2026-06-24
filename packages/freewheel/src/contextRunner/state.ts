@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 import { match } from "ts-pattern";
-import type { FwSDK } from "..";
+import type { FwSdk } from "..";
 import type { FreeWheel } from "../freeWheel";
 
 // Algebraic Data Types
@@ -43,7 +43,7 @@ export const createInitialState = (contentSrc: string): PlayerState => ({
 });
 
 export const getStateSlotForSlotClassId =
-  (sdk: FwSDK.SDK) =>
+  (sdk: FwSdk.SDK) =>
   (classId: string): keyof PlayerState | "notSupported" =>
     match(classId)
       .with(sdk.TIME_POSITION_CLASS_PREROLL, () => "prerolls" as const)

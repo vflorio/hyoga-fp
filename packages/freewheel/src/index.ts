@@ -1,13 +1,10 @@
 export * as Config from "./config";
 export * as ContextRunner from "./contextRunner";
 export * as Diagnostics from "./diagnostics";
-export * as FwADContext from "./fwADContext";
-export * as FwADManager from "./fwADManager";
-export * as FwADRequest from "./fwADRequest";
-export * as FwADRequestPlayer from "./fwADRequestMachine";
-export * as FwADRequestPlayerAdapter from "./fwADRequestPlayerAdapter";
-export * as FwADSlot from "./fwADSlot";
-export * as FwSDK from "./fwSDK";
-
-// @deprecated
-export { FreeWheel, FreeWheelPlayer, Model } from "./freeWheel";
+export * as FwAdContext from "./fwAdContext";
+export * as FwAdManager from "./fwAdManager";
+export * as FwAdRequest from "./fwAdRequest";
+export * as FwAdRequestPlayer from "./fwAdRequestMachine";
+export * as FwAdRequestPlayerAdapter from "./fwAdRequestPlayerAdapter";
+export * as FwAdSlot from "./fwAdSlot";
+export * as FwSdk from "./fwSdk";

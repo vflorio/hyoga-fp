@@ -1,6 +1,6 @@
 export * from "./codecs";
 
-import type { FwADContext } from "..";
+import type { FwAdContext } from "..";
 
 export interface TimePositionClassIdentifiers {
   readonly TIME_POSITION_CLASS_PREROLL: string;
@@ -100,6 +100,6 @@ export interface SDK
   readonly AdManager: new () => {
     setNetwork(networkId: number): void;
     setServer(url: string): void;
-    newContext(): FwADContext.AdContext;
+    newContext(): FwAdContext.AdContext;
   };
 }

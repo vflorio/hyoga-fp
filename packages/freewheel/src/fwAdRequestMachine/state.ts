@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 import { match } from "ts-pattern";
-import type { FwSDK } from "..";
+import type { FwSdk } from "..";
 import type { FreeWheel } from "../freeWheel";
 
 // Phase
@@ -60,7 +60,7 @@ export const createInitialState = (contentSrc: string): MachineState => ({
 
 // Usata per determinare in quale parte dello stato va inserito lo slot
 export const getStateSlotForSlotClassId =
-  (sdk: FwSDK.SDK) =>
+  (sdk: FwSdk.SDK) =>
   (classId: string): keyof MachineState | "notSupported" =>
     match(classId)
       .with(sdk.TIME_POSITION_CLASS_PREROLL, () => "prerolls" as const)

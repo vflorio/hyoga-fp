@@ -1,11 +1,11 @@
 import type * as IO from "fp-ts/IO";
 import type * as T from "fp-ts/Task";
-import type { FwADContext, FwADSlot, FwSDK } from "../";
+import type { FwAdContext, FwAdSlot, FwSdk } from "..";
 import type { Config } from "../config";
 
 export interface AdRequestDeps {
-  readonly SDK: FwSDK.SDK;
-  readonly adContext: FwADContext.AdContext;
+  readonly SDK: FwSdk.SDK;
+  readonly adContext: FwAdContext.AdContext;
 }
 
 // -------------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ export const setupBusinessDefaults =
 // -------------------------------------------------------------------------------------
 
 export const submit =
-  (deps: AdRequestDeps): T.Task<ReadonlyArray<FwADSlot.AdSlot>> =>
+  (deps: AdRequestDeps): T.Task<ReadonlyArray<FwAdSlot.AdSlot>> =>
   () =>
     new Promise((resolve) => {
       const handler = (event: { success: boolean }) => {

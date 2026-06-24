@@ -1,5 +1,5 @@
 import type * as IO from "fp-ts/IO";
-import type { FwADContext, FwSDK } from "..";
+import type { FwAdContext, FwSdk } from "..";
 
 // -------------------------------------------------------------------------------------
 // Models
@@ -8,14 +8,14 @@ import type { FwADContext, FwSDK } from "..";
 export interface AdManager {
   setNetwork(networkId: number): void;
   setServer(url: string): void;
-  newContext(): FwADContext.AdContext;
+  newContext(): FwAdContext.AdContext;
 }
 
 // -------------------------------------------------------------------------------------
 // Constructors
 // -------------------------------------------------------------------------------------
 
-export const create = (SDK: FwSDK.SDK): AdManager => new SDK.AdManager();
+export const create = (SDK: FwSdk.SDK): AdManager => new SDK.AdManager();
 
 // -------------------------------------------------------------------------------------
 // Combinators
@@ -23,7 +23,7 @@ export const create = (SDK: FwSDK.SDK): AdManager => new SDK.AdManager();
 
 export const configure =
   (networkId: number, serverURL: string) =>
-  (adManager: AdManager): IO.IO<FwADContext.AdContext> =>
+  (adManager: AdManager): IO.IO<FwAdContext.AdContext> =>
   () => {
     adManager.setNetwork(networkId);
     adManager.setServer(serverURL);
@@ -31,6 +31,6 @@ export const configure =
   };
 
 export const createAndConfigure =
-  (SDK: FwSDK.SDK) =>
-  (networkId: number, serverURL: string): IO.IO<FwADContext.AdContext> =>
+  (SDK: FwSdk.SDK) =>
+  (networkId: number, serverURL: string): IO.IO<FwAdContext.AdContext> =>
     configure(networkId, serverURL)(create(SDK));
