@@ -2,8 +2,8 @@ import type { Logger } from "@hyoga-fp/core";
 import type * as IO from "fp-ts/IO";
 import type * as T from "fp-ts/Task";
 import type { FwAdContext, FwAdRequestPlayerAdapter, FwAdSlot, FwSdk } from "..";
-import type { CoreHandlers } from "./events";
-import type { MachineState } from "./state";
+import type { MediaEvent, MediaEventListeners } from "./mediaEvents";
+import type { MachineState, Phase } from "./state";
 
 export { FwAdRequestMachineInstance } from "./instance";
 export type { MachinePhase, MachineState } from "./state";
@@ -13,7 +13,7 @@ export type { MachinePhase, MachineState } from "./state";
 // quindi l'oggetto viene disposed quasi intantamente in caso l'AD Server ritorna 0 fwADSlot
 
 export interface FwAdRequestMachine {
-  readonly coreHandlers: CoreHandlers;
+  readonly mediaEventListeners: MediaEventListeners;
 
   // --------------------------------------------------------------------------
   // API
@@ -40,6 +40,8 @@ export interface FwAdRequestMachine {
   readonly onStateChange: (callback: (state: MachineState) => void) => IO.IO<void>;
 }
 
+export type EmitEventFn = (event: Phase | MediaEvent | FwSdk.Event) => void;
+
 // Dipendenze necessarie per istanziare la macchina
 export interface FwAdRequestMachineDeps {
   readonly logger: Logger;
@@ -47,7 +49,7 @@ export interface FwAdRequestMachineDeps {
   readonly adContext: FwAdContext.AdContext;
   readonly getVideoAdapter: IO.IO<FwAdRequestPlayerAdapter.FwAdRequestPlayerAdapter>;
   readonly setupBusinessAdContext: IO.IO<void>;
-  readonly emit: (event: FwSdk.Event) => void;
+  readonly emit: EmitEventFn;
   readonly emitStateChange: (state: MachineState) => void;
 }
 

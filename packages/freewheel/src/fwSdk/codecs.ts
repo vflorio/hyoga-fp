@@ -2,12 +2,6 @@ import * as t from "io-ts";
 
 // FreeWheel Events Schema Codecs
 
-// Player-level events
-export const AdBreakStarted = t.type({ _tag: t.literal("AdBreakStarted") });
-export const ContentResumed = t.type({ _tag: t.literal("ContentResumed") });
-export const OverlayShown = t.type({ _tag: t.literal("OverlayShown") });
-export const Complete = t.type({ _tag: t.literal("Complete") });
-
 // Ad lifecycle
 export const AdInitiated = t.type({ _tag: t.literal("AdInitiated"), adId: t.string });
 export const AdImpression = t.type({ _tag: t.literal("AdImpression"), adId: t.string });
@@ -85,11 +79,6 @@ export const ValidationError = t.type({
 });
 
 export const Event = t.union([
-  // Player-level
-  AdBreakStarted,
-  ContentResumed,
-  OverlayShown,
-  Complete,
   // Ad lifecycle
   AdInitiated,
   AdImpression,

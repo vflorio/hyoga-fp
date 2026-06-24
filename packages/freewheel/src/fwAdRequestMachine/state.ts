@@ -5,6 +5,7 @@ import type { Endomorphism } from "fp-ts/lib/Endomorphism";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as T from "fp-ts/Task";
+import * as t from "io-ts";
 import { match } from "ts-pattern";
 import { FwAdSlot, type FwSdk } from "..";
 
@@ -22,6 +23,17 @@ export type MachinePhase =
 export const setPhase =
   (phase: MachinePhase) =>
   (state: MachineState): MachineState => ({ ...state, phase });
+
+export const Init = t.type({ _tag: t.literal("Init") });
+export const Preroll = t.type({ _tag: t.literal("Preroll") });
+export const Content = t.type({ _tag: t.literal("Content") });
+export const Midroll = t.type({ _tag: t.literal("Midroll") });
+export const PauseMidroll = t.type({ _tag: t.literal("PauseMidroll") });
+export const Postroll = t.type({ _tag: t.literal("Postroll") });
+export const Done = t.type({ _tag: t.literal("Done") });
+
+export const Phase = t.union([Init, Preroll, Content, Midroll, PauseMidroll, Postroll, Done]);
+export type Phase = t.TypeOf<typeof Phase>;
 
 // Guard utilities
 

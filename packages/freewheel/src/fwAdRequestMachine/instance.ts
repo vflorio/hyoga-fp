@@ -1,11 +1,17 @@
 import * as IO from "fp-ts/IO";
-import { pipe } from "fp-ts/lib/function";
+import { constVoid, pipe } from "fp-ts/lib/function";
 import * as T from "fp-ts/Task";
 import { match } from "ts-pattern";
 import { FwAdRequest, type FwAdSlot } from "..";
 import { createDiagnostics } from "../diagnostics/diagnostics";
 import type { FwAdRequestMachine, FwAdRequestMachineDeps } from ".";
-import type { CoreHandlers } from "./events";
+import {
+  type MediaEventListeners,
+  onContentPauseRequest,
+  onContentResumeRequest,
+  onSlotEnded,
+  onSlotStarted,
+} from "./mediaEvents";
 import * as Phase from "./phases";
 import { createInitialState, type MachineState, Stateful, setPhase, whenPhaseIO } from "./state";
 
@@ -30,14 +36,30 @@ const instancePhaseEffect = (state: MachineState) => (instance: FwAdRequestMachi
     IO.tap((newState) => instance.deps.logger.debug(`[MachineInstance] Effect end ${newState.phase._tag}`)),
   );
 
+declare const actions: {
+  // Riproduce lo slot
+  playPreroll: IO.IO<void>;
+  playPostroll: IO.IO<void>;
+  // Ritorna al contenuto, caricando la src e facendo il seek alla posizione salvata
+  restoreAfterMidroll: IO.IO<void>;
+  restoreAfterPauseMidroll: IO.IO<void>;
+};
+
 export class FwAdRequestMachineInstance implements FwAdRequestMachine {
   state: MachineState = createInitialState(this.deps.getVideoAdapter().getSrc());
 
-  coreHandlers: CoreHandlers = {
-    onSlotStarted: console.log,
-    onSlotEnded: console.log,
-    onContentPauseRequest: console.log,
-    onContentResumeRequest: console.log,
+  // Questi rimangono registrati dalla fase di "Init" fino alla "Done"
+  mediaEventListeners: MediaEventListeners = {
+    onSlotStarted: onSlotStarted(this.deps),
+    onSlotEnded: onSlotEnded(this.deps)({
+      onPreroll: actions.playPreroll,
+      onPostroll: actions.playPostroll,
+      onMidroll: actions.restoreAfterMidroll,
+      onPauseMidroll: actions.restoreAfterPauseMidroll,
+      onOverlay: constVoid, // overlay non richiede azioni particolari, il contenuto continua a girare sotto
+    }),
+    onContentPauseRequest: onContentPauseRequest(this.deps),
+    onContentResumeRequest: onContentResumeRequest(this.deps),
   };
 
   stateful = new Stateful(
