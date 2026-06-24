@@ -2,6 +2,7 @@ import type { Logger } from "@hyoga-fp/core";
 import type * as IO from "fp-ts/IO";
 import type * as T from "fp-ts/Task";
 import type { FwAdContext, FwAdRequestPlayerAdapter, FwAdSlot, FwSdk } from "..";
+import type { CoreHandlers } from "./events";
 import type { MachineState } from "./state";
 
 export { FwAdRequestMachineInstance } from "./instance";
@@ -12,6 +13,8 @@ export type { MachinePhase, MachineState } from "./state";
 // quindi l'oggetto viene disposed quasi intantamente in caso l'AD Server ritorna 0 fwADSlot
 
 export interface FwAdRequestMachine {
+  readonly coreHandlers: CoreHandlers;
+
   // --------------------------------------------------------------------------
   // API
   // --------------------------------------------------------------------------
@@ -42,7 +45,7 @@ export interface FwAdRequestMachineDeps {
   readonly logger: Logger;
   readonly SDK: FwSdk.SDK;
   readonly adContext: FwAdContext.AdContext;
-  readonly videoAdapter: FwAdRequestPlayerAdapter.FwAdRequestPlayerAdapter;
+  readonly getVideoAdapter: IO.IO<FwAdRequestPlayerAdapter.FwAdRequestPlayerAdapter>;
   readonly setupBusinessAdContext: IO.IO<void>;
   readonly emit: (event: FwSdk.Event) => void;
   readonly emitStateChange: (state: MachineState) => void;

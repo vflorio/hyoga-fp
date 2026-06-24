@@ -5,6 +5,7 @@ import { match } from "ts-pattern";
 import { FwAdRequest, type FwAdSlot } from "..";
 import { createDiagnostics } from "../diagnostics/diagnostics";
 import type { FwAdRequestMachine, FwAdRequestMachineDeps } from ".";
+import type { CoreHandlers } from "./events";
 import * as Phase from "./phases";
 import { createInitialState, type MachineState, Stateful, setPhase, whenPhaseIO } from "./state";
 
@@ -30,7 +31,14 @@ const instancePhaseEffect = (state: MachineState) => (instance: FwAdRequestMachi
   );
 
 export class FwAdRequestMachineInstance implements FwAdRequestMachine {
-  state: MachineState = createInitialState(this.deps.videoAdapter.getSrc());
+  state: MachineState = createInitialState(this.deps.getVideoAdapter().getSrc());
+
+  coreHandlers: CoreHandlers = {
+    onSlotStarted: console.log,
+    onSlotEnded: console.log,
+    onContentPauseRequest: console.log,
+    onContentResumeRequest: console.log,
+  };
 
   stateful = new Stateful(
     // Dipendenze
