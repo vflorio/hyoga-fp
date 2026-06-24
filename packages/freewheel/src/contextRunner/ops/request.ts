@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/function";
 import * as IO from "fp-ts/IO";
 import * as T from "fp-ts/Task";
-import type { FreeWheel } from "../../freeWheel";
+import type { FwAdSlot } from "../..";
 import type { ContextRunnerOpContext } from "..";
 import * as Transitions from "../transitions";
 
@@ -12,7 +12,7 @@ export interface RequestOps {
 export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: IO.IO<void>): RequestOps => {
   const { setState, adContext, SDK, logger } = context;
 
-  const submitAdRequest: T.Task<ReadonlyArray<FreeWheel.AdSlot>> = () =>
+  const submitAdRequest: T.Task<ReadonlyArray<FwAdSlot.AdSlot>> = () =>
     new Promise((resolve) => {
       const handler = (event: { success: boolean }) => {
         adContext.removeEventListener(SDK.EVENT_REQUEST_COMPLETE, handler);

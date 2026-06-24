@@ -3,7 +3,7 @@ import * as IO from "fp-ts/IO";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
-import type { FreeWheel } from "../../freeWheel";
+import type { FwAdSlot } from "../..";
 import type { ContextRunnerOpContext } from "..";
 import * as Transitions from "../transitions";
 import type { PlaybackOps } from "./playback";
@@ -11,8 +11,8 @@ import type { PlaybackOps } from "./playback";
 export interface AdBreakOps {
   readonly playPreroll: IO.IO<void>;
   readonly playPostroll: IO.IO<void>;
-  readonly onSlotStarted: (event: { slot: FreeWheel.AdSlot }) => void;
-  readonly onSlotEnded: (event: { slot: FreeWheel.AdSlot }) => void;
+  readonly onSlotStarted: (event: { slot: FwAdSlot.AdSlot }) => void;
+  readonly onSlotEnded: (event: { slot: FwAdSlot.AdSlot }) => void;
   readonly onContentPauseRequest: () => void;
   readonly onContentResumeRequest: () => void;
 }
@@ -60,7 +60,7 @@ export const createAdBreakOps = (context: ContextRunnerOpContext, playback: Play
     ),
   );
 
-  const onSlotStarted = (event: { slot: FreeWheel.AdSlot }): void => {
+  const onSlotStarted = (event: { slot: FwAdSlot.AdSlot }): void => {
     const classId = event.slot.getTimePositionClass();
     pipe(
       logger.info(`[AdBreakOps] onSlotStarted: classId=${classId}, adCount=${event.slot.getAdCount()}`),
@@ -137,7 +137,7 @@ export const createAdBreakOps = (context: ContextRunnerOpContext, playback: Play
     }),
   );
 
-  const onSlotEnded = (event: { slot: FreeWheel.AdSlot }): void => {
+  const onSlotEnded = (event: { slot: FwAdSlot.AdSlot }): void => {
     pipe(
       IO.of(event.slot.getTimePositionClass()),
       IO.tap((classId) =>

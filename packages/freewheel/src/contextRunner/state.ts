@@ -1,7 +1,6 @@
 import * as O from "fp-ts/Option";
 import { match } from "ts-pattern";
-import type { FwSdk } from "..";
-import type { FreeWheel } from "../freeWheel";
+import type { FwAdSlot, FwSdk } from "..";
 
 // Algebraic Data Types
 
@@ -19,14 +18,14 @@ export type PlaybackPhase =
 export interface PlayerState {
   readonly phase: PlaybackPhase;
 
-  readonly prerolls: ReadonlyArray<FreeWheel.AdSlot>;
-  readonly midrolls: ReadonlyArray<FreeWheel.AdSlot>;
-  readonly overlays: ReadonlyArray<FreeWheel.AdSlot>;
-  readonly postrolls: ReadonlyArray<FreeWheel.AdSlot>;
-  readonly pauseMidrolls: ReadonlyArray<FreeWheel.AdSlot>;
+  readonly prerolls: ReadonlyArray<FwAdSlot.AdSlot>;
+  readonly midrolls: ReadonlyArray<FwAdSlot.AdSlot>;
+  readonly overlays: ReadonlyArray<FwAdSlot.AdSlot>;
+  readonly postrolls: ReadonlyArray<FwAdSlot.AdSlot>;
+  readonly pauseMidrolls: ReadonlyArray<FwAdSlot.AdSlot>;
 
   readonly contentSrc: string;
-  readonly currentSlot: O.Option<FreeWheel.AdSlot>; // the ad slot currently playing
+  readonly currentSlot: O.Option<FwAdSlot.AdSlot>; // the ad slot currently playing
   readonly contentPausedOn: number; // resume position for mid/pause-midroll
 }
 

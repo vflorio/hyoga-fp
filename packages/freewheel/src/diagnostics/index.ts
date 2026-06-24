@@ -1,7 +1,7 @@
 import * as IO from "fp-ts/IO";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
-import type { Model } from "../freeWheel";
+import type { FwSdk } from "..";
 import type { DiagnosticDeps, DiagnosticsDomainHandler } from "./diagnostics";
 
 export type { DiagnosticsDomainHandler };
@@ -13,11 +13,7 @@ export type { DiagnosticsDomainHandler };
 // 3. lo trasmette attraverso la funzione emit delle dipendenze
 // Viene utilizzato solo all'interno dei DiagnosticsDomainHandler per gestire la callback di un evento dell'SDK
 // TODO: fare una funzione di parsing esplicita con Either
-export const dispatch = (
-  deps: DiagnosticDeps,
-  eventName: string,
-  fromRawEvent: (raw: any) => Model.SDKEvent | null,
-) => {
+export const dispatch = (deps: DiagnosticDeps, eventName: string, fromRawEvent: (raw: any) => FwSdk.Event | null) => {
   const { emit, logger } = deps;
 
   return (raw: any): void =>

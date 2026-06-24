@@ -84,7 +84,7 @@ export const ValidationError = t.type({
   reason: t.string,
 });
 
-export const SDKEvent = t.union([
+export const Event = t.union([
   // Player-level
   AdBreakStarted,
   ContentResumed,
@@ -135,4 +135,4 @@ export const SDKEvent = t.union([
   ValidationError,
 ]);
 
-export type SDKEvent = t.TypeOf<typeof SDKEvent>;
+export type Event = t.TypeOf<typeof Event>;

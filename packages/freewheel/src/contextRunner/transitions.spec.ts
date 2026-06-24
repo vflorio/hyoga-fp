@@ -1,6 +1,6 @@
 import * as O from "fp-ts/Option";
 import { describe, expect, it } from "vitest";
-import type { AdSlot, SDK } from "../freeWheel/freeWheel";
+import type { FwAdSlot, FwSdk } from "..";
 import { createInitialState, type PlayerState } from "./state";
 import {
   applySlots,
@@ -14,7 +14,7 @@ import {
 
 // --- Test helpers ---
 
-const mockSlot = (timePositionClass: string, timePosition = 0): AdSlot => ({
+const mockSlot = (timePositionClass: string, timePosition = 0): FwAdSlot.AdSlot => ({
   getTimePositionClass: () => timePositionClass,
   getTimePosition: () => timePosition,
   getAdCount: () => 1,
@@ -29,7 +29,7 @@ const sdk = {
   TIME_POSITION_CLASS_OVERLAY: "overlay",
   TIME_POSITION_CLASS_POSTROLL: "postroll",
   TIME_POSITION_CLASS_PAUSE_MIDROLL: "pause_midroll",
-} as SDK;
+} as FwSdk.SDK;
 
 const baseState: PlayerState = createInitialState("video.mp4");
 
@@ -63,7 +63,7 @@ describe("applySlots", () => {
   const allSlots = [preroll, midroll, overlay, postroll, pauseMidroll];
 
   it("categorizes slots into their respective buckets", () => {
-    const result = applySlots(sdk satisfies SDK)(allSlots)(baseState);
+    const result = applySlots(sdk)(allSlots)(baseState);
 
     expect(result.prerolls).toEqual([preroll]);
     expect(result.midrolls).toEqual([midroll]);

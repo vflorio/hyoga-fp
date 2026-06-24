@@ -2,12 +2,11 @@ import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { FwAdSlot, type FwSdk } from "..";
-import type { FreeWheel } from "../freeWheel";
 import { getStateSlotForSlotClassId, type MachineState } from "./state";
 
 export const applySlots =
   (sdk: FwSdk.SDK) =>
-  (allSlots: ReadonlyArray<FreeWheel.AdSlot>) =>
+  (allSlots: ReadonlyArray<FwAdSlot.AdSlot>) =>
   (state: MachineState): MachineState => ({
     ...state,
     ...Object.fromEntries(
@@ -22,7 +21,7 @@ export const applySlots =
   });
 
 export const popPreroll =
-  (slot: FreeWheel.AdSlot) =>
+  (slot: FwAdSlot.AdSlot) =>
   (state: MachineState): MachineState => ({
     ...state,
     prerolls: RA.dropLeft(1)(state.prerolls),
@@ -31,7 +30,7 @@ export const popPreroll =
   });
 
 export const popPostroll =
-  (slot: FreeWheel.AdSlot) =>
+  (slot: FwAdSlot.AdSlot) =>
   (state: MachineState): MachineState => ({
     ...state,
     postrolls: RA.dropLeft(1)(state.postrolls),
@@ -40,7 +39,7 @@ export const popPostroll =
   });
 
 export const popMidroll =
-  (slot: FreeWheel.AdSlot, pausedAt: number) =>
+  (slot: FwAdSlot.AdSlot, pausedAt: number) =>
   (state: MachineState): MachineState => ({
     ...state,
     midrolls: RA.dropLeft(1)(state.midrolls),

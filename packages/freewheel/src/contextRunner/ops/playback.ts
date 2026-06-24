@@ -3,7 +3,7 @@ import * as IO from "fp-ts/IO";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { match, P } from "ts-pattern";
-import type { FreeWheel } from "../../freeWheel";
+import type { FwAdSlot } from "../..";
 import type { ContextRunnerOpContext } from "..";
 import type { PlayerState } from "../state";
 import * as Transitions from "../transitions";
@@ -34,7 +34,7 @@ export const createPlaybackOps = (
         RA.findFirst((slot) => Math.abs(slot.getTimePosition() - time) < 0.5),
       );
 
-    const onOverlay = (overlay: O.Some<FreeWheel.AdSlot>, time: number) =>
+    const onOverlay = (overlay: O.Some<FwAdSlot.AdSlot>, time: number) =>
       pipe(
         logger.info(
           `[PlaybackOps] onContentTimeUpdate: overlay triggered at t=${time.toFixed(2)}s (cue=${overlay.value.getTimePosition()}s)`,
@@ -44,7 +44,7 @@ export const createPlaybackOps = (
         IO.flatMap(() => () => emit({ _tag: "OverlayShown" })),
       );
 
-    const onMidroll = (midroll: O.Some<FreeWheel.AdSlot>, time: number) =>
+    const onMidroll = (midroll: O.Some<FwAdSlot.AdSlot>, time: number) =>
       pipe(
         logger.info(
           `[PlaybackOps] onContentTimeUpdate: midroll triggered at t=${time.toFixed(2)}s (cue=${midroll.value.getTimePosition()}s), pausing content`,

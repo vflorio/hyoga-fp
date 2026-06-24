@@ -1,6 +1,6 @@
 import type { Logger } from "@hyoga-fp/core";
 import type * as IO from "fp-ts/IO";
-import type { FreeWheel, Model } from "../freeWheel";
+import type { FwAdContext, FwSdk } from "..";
 import { withAdLifecycle } from "./domains/adLifecycle";
 import { withContentState } from "./domains/contentState";
 import { withInfrastructure } from "./domains/infrastructure";
@@ -17,9 +17,9 @@ export interface DiagnosticRegistration {
 }
 
 export interface DiagnosticDeps {
-  readonly adContext: FreeWheel.AdContext;
-  readonly SDK: FreeWheel.SDK;
-  readonly emit: (event: Model.SDKEvent) => void;
+  readonly adContext: FwAdContext.AdContext;
+  readonly SDK: FwSdk.SDK;
+  readonly emit: (event: FwSdk.Event) => void;
   readonly logger: Logger;
 }
 
