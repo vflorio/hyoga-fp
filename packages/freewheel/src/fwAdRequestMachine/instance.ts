@@ -1,40 +1,15 @@
 import * as IO from "fp-ts/IO";
 import { constVoid, pipe } from "fp-ts/lib/function";
 import * as T from "fp-ts/Task";
-import { match } from "ts-pattern";
 import { FwAdRequest, type FwAdSlot } from "..";
 import { createDiagnostics } from "../diagnostics/diagnostics";
 import type { FwAdRequestMachine, FwAdRequestMachineDeps } from ".";
-import {
-  type MediaEventListeners,
-  onContentPauseRequest,
-  onContentResumeRequest,
-  onSlotEnded,
-  onSlotStarted,
-} from "./mediaEvents";
+import * as ContentController from "./controllers/content";
+import * as SlotController from "./controllers/slot";
+import * as Effects from "./effects";
+import type * as MediaEvents from "./mediaEvents";
 import * as Phase from "./phases";
 import { createInitialState, type MachineState, Stateful, setPhase, whenPhaseIO } from "./state";
-
-// Transition | SetPhase -> StateChange -> InstancePhaseEffect<T>
-
-// Questa funzione gestisce ogni possibile fase della state-machine, se si aggiunge una nuova Phase, da qui si connette all'instanza
-const instancePhaseEffect = (state: MachineState) => (instance: FwAdRequestMachineInstance) =>
-  pipe(
-    IO.of(state),
-    IO.tap(() => instance.deps.logger.debug(`[MachineInstance] Effect start ${state.phase._tag}`)),
-    IO.flatMap(() =>
-      match(state.phase)
-        .with({ _tag: "Init" }, () => Phase.onInit(state, instance))
-        .with({ _tag: "Preroll" }, () => Phase.onPreroll(state, instance))
-        .with({ _tag: "Content" }, () => Phase.onContent(state, instance))
-        .with({ _tag: "Midroll" }, () => Phase.onMidroll(state, instance))
-        .with({ _tag: "PauseMidroll" }, () => Phase.onPauseMidroll(state, instance))
-        .with({ _tag: "Postroll" }, () => Phase.onPostroll(state, instance))
-        .with({ _tag: "Done" }, () => Phase.onDone(state, instance))
-        .exhaustive(),
-    ),
-    IO.tap((newState) => instance.deps.logger.debug(`[MachineInstance] Effect end ${newState.phase._tag}`)),
-  );
 
 // TODO
 declare const actions: {
@@ -49,18 +24,22 @@ declare const actions: {
 export class FwAdRequestMachineInstance implements FwAdRequestMachine {
   state: MachineState = createInitialState(this.deps.getVideoAdapter().getSrc());
 
+  onSlotEndedDecisions = {
+    onPreroll: Effects.playPreroll(this.deps),
+    onPostroll: Effects.playPostroll(this.deps),
+    onMidroll: Effects.restoreAfterMidroll(this.deps),
+    onPauseMidroll: Effects.restoreAfterPauseMidroll(this.deps),
+    onOverlay: constVoid, // overlay non richiede azioni particolari, il contenuto continua a girare sotto
+  };
+
   // Questi rimangono registrati dalla fase di "Init" fino alla "Done"
-  mediaEventListeners: MediaEventListeners = {
-    onSlotStarted: onSlotStarted(this.deps),
-    onSlotEnded: onSlotEnded(this.deps)({
-      onPreroll: actions.playPreroll,
-      onPostroll: actions.playPostroll,
-      onMidroll: actions.restoreAfterMidroll,
-      onPauseMidroll: actions.restoreAfterPauseMidroll,
-      onOverlay: constVoid, // overlay non richiede azioni particolari, il contenuto continua a girare sotto
-    }),
-    onContentPauseRequest: onContentPauseRequest(this.deps),
-    onContentResumeRequest: onContentResumeRequest(this.deps),
+  mediaEventListeners: MediaEvents.Handlers = {
+    // Content
+    onContentPauseRequest: ContentController.onContentPauseRequest(this.deps),
+    onContentResumeRequest: ContentController.onContentResumeRequest(this.deps),
+    // Slot
+    onSlotStarted: SlotController.onSlotStarted(this.deps),
+    onSlotEnded: SlotController.onSlotEnded(this.deps)(this.onSlotEndedDecisions),
   };
 
   stateful = new Stateful(
@@ -68,7 +47,7 @@ export class FwAdRequestMachineInstance implements FwAdRequestMachine {
     this.deps.logger,
     this.state,
     // Quando lo stato cambia, eseguiamo i side-effect della nuova fase
-    (state) => instancePhaseEffect(state)(this)(),
+    (state) => Phase.runInstancePhaseEffect(state)(this)(),
   );
 
   diagnostics = createDiagnostics(this.deps);
@@ -86,12 +65,9 @@ export class FwAdRequestMachineInstance implements FwAdRequestMachine {
   // Public API
 
   public readonly requestAds: T.Task<ReadonlyArray<FwAdSlot.AdSlot>> = pipe(
-    // Impostiamo parametri e configurazione al contesto corrente
-    T.fromIO(this.setupAdContext),
+    T.Do,
     T.tapIO(() => this.deps.logger.info("[MachineInstance] requestAds: submitting AD request")),
-    // Registriamo i listeners diagnostici per forwardare eventi dell'SDK di FreeWheel
-    T.flatMap(() => T.fromIO(this.diagnostics.register)),
-    // Effettuaimo la richiesta all'ADServer, che ci restituirà gli slots da erogare
+    T.flatMap(() => T.fromIO(this.setupAdContext)),
     T.flatMap(() => FwAdRequest.submit(this.deps)),
   );
 

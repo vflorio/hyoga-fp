@@ -2,7 +2,7 @@ import type { Logger } from "@hyoga-fp/core";
 import type * as IO from "fp-ts/IO";
 import type * as T from "fp-ts/Task";
 import type { FwAdContext, FwAdRequestPlayerAdapter, FwAdSlot, FwSdk } from "..";
-import type { MediaEvent, MediaEventListeners } from "./mediaEvents";
+import type { Handlers, MediaEvent } from "./mediaEvents";
 import type { MachineState, Phase } from "./state";
 
 export { FwAdRequestMachineInstance } from "./instance";
@@ -13,7 +13,7 @@ export type { MachinePhase, MachineState } from "./state";
 // quindi l'oggetto viene disposed quasi intantamente in caso l'AD Server ritorna 0 fwADSlot
 
 export interface FwAdRequestMachine {
-  readonly mediaEventListeners: MediaEventListeners;
+  readonly mediaEventListeners: Handlers;
 
   // --------------------------------------------------------------------------
   // API
