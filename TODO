@@ -1,5 +1,6 @@
 - E2E/Storybook
 - Integrazione Stone
+- Se chiamando l'api di play/resume non succede niente, la runtime dovrebbe richiedere l'elemento video e rifare la registrazione in modo autonomo
 
 BUGS:
     - ricontrollare tutto il lifecycle dell'AD Context, 

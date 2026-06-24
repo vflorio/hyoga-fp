@@ -1,43 +1,52 @@
 import { Box, Button, Stack, Typography } from "@mui/material";
+import { pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/Option";
 import { useCallback, useState } from "react";
 import { match } from "ts-pattern";
-import { useFreeWheelPlayer } from "./useFreeWheelPlayer";
+//import { useFreeWheelPlayer } from "./useFreeWheelPlayer";
+import { useFwAdRequestMachine } from "./useFwAdRequestMachine";
 
 export type ButtonPhase = "init" | "playing" | "paused";
 
 export function Player() {
   const [phase, setPhase] = useState<ButtonPhase>("init");
-  const { videoRef, player, state } = useFreeWheelPlayer();
+  //const { videoRef, player, state } = useFreeWheelPlayer();
 
-  const handleClick = useCallback(() => {
-    if (!player) return;
-    match(phase)
-      .with("init", () => {
-        setPhase("playing");
-        player.requestAds();
-      })
-      .with("playing", () => {
-        setPhase("paused");
-        player.pause();
-      })
-      .with("paused", () => {
-        setPhase("playing");
-        player.resume();
-      })
-      .exhaustive();
-  }, [phase, player]);
+  const { machine, videoRef } = useFwAdRequestMachine();
+
+  const handleClick = useCallback(
+    () =>
+      pipe(
+        machine,
+        O.match(
+          () => {},
+          (machine) => {
+            match(phase)
+              .with("init", () => {
+                setPhase("playing");
+                machine.requestAds();
+              })
+              .with("playing", () => {
+                setPhase("paused");
+                machine.pause();
+              })
+              .with("paused", () => {
+                setPhase("playing");
+                machine.resume();
+              })
+              .exhaustive();
+          },
+        ),
+      ),
+    [phase, machine],
+  );
 
   return (
     <Stack>
       <Stack direction="row" sx={{ flexGrow: 1 }}>
         <Stack>
-          <Box id="displayBase" sx={{ position: "relative" }}>
-            <video
-              ref={videoRef}
-              id="videoPlayer"
-              playsInline
-              style={{ height: 480, width: "100%", backgroundColor: "#000" }}
-            >
+          <Box id="displayBase" sx={{ position: "relative", flexGrow: 1, width: "100%", height: 480 }}>
+            <video ref={videoRef} id="videoPlayer" playsInline controls style={{ width: "100%", height: "100%" }}>
               <source src="https://ott.dolby.com/OnDelKits/AC-4/Dolby_AC-4_Online_Delivery_Kit_1.5/Test_Signals/muxed_streams/MP4/Example/Audio_ID_720p_25fps_h264_2ch_64kbps_ac4.mp4" />
             </video>
           </Box>
@@ -45,7 +54,15 @@ export function Player() {
             {phase === "init" ? "Play" : phase === "playing" ? "Pause" : "Resume"}
           </Button>
         </Stack>
-        <pre style={{ maxWidth: "400px" }}>{JSON.stringify({ phase, state }, null, 2)}</pre>
+        <pre style={{ maxWidth: "400px" }}>
+          {pipe(
+            machine,
+            O.match(
+              () => "empty",
+              (instance) => pipe(instance.getState(), (state) => JSON.stringify(state, null, 2)),
+            ),
+          )}
+        </pre>
       </Stack>
       <Stack
         sx={{

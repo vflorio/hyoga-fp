@@ -1,8 +1,11 @@
 import type { Logger } from "@hyoga-fp/core";
 import type * as IO from "fp-ts/IO";
 import type * as T from "fp-ts/Task";
-import type { FwAdContext, FwAdRequestPlayerAdapter, FwSdk } from "..";
-import type { MachinePhase, MachineState } from "./state";
+import type { FwAdContext, FwAdRequestPlayerAdapter, FwAdSlot, FwSdk } from "..";
+import type { MachineState } from "./state";
+
+export { FwAdRequestMachineInstance } from "./instance";
+export type { MachinePhase, MachineState } from "./state";
 
 // FwAdRequestPlayer è la machine-interper  per effettuare una richiesta di ADs a FreeWheel e mostrarla su schermo.
 // Il ciclo di vita di questo oggetto termina quando tutti gli slots sono stati mostrati,
@@ -14,7 +17,7 @@ export interface FwAdRequestMachine {
   // --------------------------------------------------------------------------
 
   // Qui facciamo iniziare il flusso principale della macchina
-  readonly requestAds: T.Task<void>;
+  readonly requestAds: T.Task<ReadonlyArray<FwAdSlot.AdSlot>>;
 
   // Dipendenze per la gestione del video, se l'interprete della macchina vuole mettere in pausa o riprendere,
   // deve utilizzare questa API per sincronizzare la MachineState, per mettere in pausa l'AdSlot, per triggerare lo slot di PauseMidroll
@@ -30,9 +33,7 @@ export interface FwAdRequestMachine {
   readonly earlyDispose: IO.IO<void>;
 
   // Observability
-  readonly getPhase: IO.IO<MachinePhase>;
   readonly getState: IO.IO<MachineState>;
-  readonly onPhaseChange: (callback: (phase: MachinePhase) => void) => IO.IO<void>;
   readonly onStateChange: (callback: (state: MachineState) => void) => IO.IO<void>;
 }
 

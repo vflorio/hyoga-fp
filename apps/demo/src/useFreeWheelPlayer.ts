@@ -1,10 +1,10 @@
 import { createLogger, EventStream, type LogLevel } from "@hyoga-fp/core";
-import { type Config, type ContextRunner, FreeWheelPlayer, type FwSDK, type Model } from "@hyoga-fp/freewheel";
+import * as FreeWheel from "@hyoga-fp/freewheel";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { config } from "./env";
 
-const createVideoAdapterFrom = (videoEl: HTMLVideoElement): ContextRunner.ContextRunnerVideoAdapter => ({
+const createVideoAdapterFrom = (videoEl: HTMLVideoElement): FreeWheel.ContextRunner.ContextRunnerVideoAdapter => ({
   play: () => videoEl.play(),
   pause: () => videoEl.pause(),
   getCurrentTime: () => videoEl.currentTime,
@@ -20,7 +20,7 @@ const createVideoAdapterFrom = (videoEl: HTMLVideoElement): ContextRunner.Contex
   off: (event, handler) => () => videoEl.removeEventListener(event, handler),
 });
 
-const adContextConfig: Config.Config = {
+const adContextConfig: FreeWheel.Config.Config = {
   serverURL: config.serverURL,
   profileId: config.profileId,
   videoAssetId: config.videoAssetId,
@@ -41,10 +41,10 @@ const adContextConfig: Config.Config = {
   keyValues: [{ key: "skippable", value: "enabled" }],
 };
 // Creiamo un player parlialmente preconfigurato con una configurazione dell'AdContext standard
-const createPlayerWithAdContext = FreeWheelPlayer.createPlayerFrom(adContextConfig);
+const createPlayerWithAdContext = FreeWheel.Config.createPlayerFrom(adContextConfig);
 
 export const useFreeWheelPlayer = () => {
-  const SDK = (window as any).tv.freewheel.SDK as FwSDK.SDK;
+  const SDK = (window as any).tv.freewheel.SDK as FreeWheel.FwSdk.SDK;
 
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
   const videoRef = useCallback((node: HTMLVideoElement | null) => setVideoElement(node), []);
@@ -52,9 +52,9 @@ export const useFreeWheelPlayer = () => {
   const logger = useRef(createLogger("useFreeWheelPlayer", config.logLevel satisfies LogLevel));
 
   // Il lifecycle dell'EventStream è gestito dal consumer del player
-  const eventStream = useRef(new EventStream<Model.SDKEvent>("freewheel-events"));
+  const eventStream = useRef(new EventStream<FreeWheel.FwSdk.Event>("freewheel-events"));
 
-  const [runnerState, setRunnerState] = useState<ContextRunner.PlayerState | null>(null);
+  const [runnerState, setRunnerState] = useState<FreeWheel.ContextRunner.PlayerState | null>(null);
 
   const runner = useMemo(
     () =>
