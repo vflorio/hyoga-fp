@@ -1,6 +1,6 @@
 import type * as IO from "fp-ts/IO";
 
-export interface FwAdRequestPlayerAdapter {
+export interface Adapter {
   readonly play: IO.IO<void>;
   readonly pause: IO.IO<void>;
   readonly getCurrentTime: IO.IO<number>;

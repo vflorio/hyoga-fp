@@ -49,7 +49,7 @@ export interface FwAdRequestMachineDeps {
   readonly logger: Logger;
   readonly SDK: FwSdk.SDK;
   readonly adContext: FwAdContext.AdContext;
-  readonly getVideoAdapter: IO.IO<FwAdRequestPlayerAdapter.FwAdRequestPlayerAdapter>;
+  readonly getVideoAdapter: IO.IO<FwAdRequestPlayerAdapter.Adapter>;
   readonly setupBusinessAdContext: IO.IO<void>;
   readonly emit: EmitEventFn;
   readonly emitStateChange: (state: MachineState) => void;

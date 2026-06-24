@@ -11,16 +11,6 @@ import type * as MediaEvents from "./events";
 import * as Phase from "./phases";
 import { createInitialState, type MachineState, Stateful, setPhase, whenPhaseIO } from "./state";
 
-// TODO
-declare const actions: {
-  // Riproduce lo slot
-  playPreroll: IO.IO<void>;
-  playPostroll: IO.IO<void>;
-  // Ritorna al contenuto, caricando la src e facendo il seek alla posizione salvata
-  restoreAfterMidroll: IO.IO<void>;
-  restoreAfterPauseMidroll: IO.IO<void>;
-};
-
 export class FwAdRequestMachineInstance implements FwAdRequestMachine {
   state: MachineState = createInitialState(this.deps.getVideoAdapter().getSrc());
 
@@ -35,8 +25,8 @@ export class FwAdRequestMachineInstance implements FwAdRequestMachine {
   // Questi rimangono registrati dalla fase di "Init" fino alla "Done"
   mediaEventListeners: MediaEvents.CoreHandlers = {
     // Content
-    onContentPauseRequest: ContentController.onContentPauseRequest(this.deps),
-    onContentResumeRequest: ContentController.onContentResumeRequest(this.deps),
+    onContentPauseRequest: ContentController.onContentPauseRequest(this.deps)(this),
+    onContentResumeRequest: ContentController.onContentResumeRequest(this.deps)(this),
     // Slot
     onSlotStarted: SlotController.onSlotStarted(this.deps),
     onSlotEnded: SlotController.onSlotEnded(this.deps)(this.onSlotEndedEffects),
