@@ -4,6 +4,7 @@ import * as IORef from "fp-ts/IORef";
 import type { Endomorphism } from "fp-ts/lib/Endomorphism";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
+import * as T from "fp-ts/Task";
 import { match } from "ts-pattern";
 import { FwAdSlot, type FwSdk } from "..";
 
@@ -21,6 +22,28 @@ export type MachinePhase =
 export const setPhase =
   (phase: MachinePhase) =>
   (state: MachineState): MachineState => ({ ...state, phase });
+
+// Guard utilities
+
+// Runs "effect" only when the current phase tag is in "allowedTags", otherwise no-ops
+export const whenPhaseIO =
+  (getState: IO.IO<MachineState>) =>
+  (allowedTags: ReadonlyArray<MachinePhase["_tag"]>) =>
+  (effect: IO.IO<void>): IO.IO<void> =>
+    pipe(
+      getState,
+      IO.flatMap((state) => (allowedTags.includes(state.phase._tag) ? effect : IO.of(undefined))),
+    );
+
+// Task variant of "whenPhase"
+export const whenPhaseT =
+  (getState: IO.IO<MachineState>) =>
+  (allowedTags: ReadonlyArray<MachinePhase["_tag"]>) =>
+  (effect: T.Task<void>): T.Task<void> =>
+    pipe(
+      T.fromIO(getState),
+      T.flatMap((state) => (allowedTags.includes(state.phase._tag) ? effect : T.of(undefined))),
+    );
 
 // State
 
@@ -83,6 +106,7 @@ export class Stateful implements IMachineStateController {
   constructor(
     private readonly logger: Logger,
     private readonly state: MachineState,
+    private readonly emitStateChange: (state: MachineState) => void,
   ) {}
 
   stateRef = IORef.newIORef<MachineState>(this.state)();
@@ -106,7 +130,7 @@ export class Stateful implements IMachineStateController {
       IO.flatMap(() => this.stateRef.read),
       IO.tap((newState) => this.logger.debug(`[Stateful] setState: NEXT -> "${newState.phase._tag}"`, newState)),
       IO.tap((slots) => this.logger.debug(`[Stateful] slots: ${this.logStateSlots(slots)}`)),
-      //IO.flatMap((newState) => () => emitStateChange(newState)),
+      IO.tap((newState) => () => this.emitStateChange(newState)),
     );
 
   public readonly getState: IO.IO<MachineState> = this.stateRef.read;

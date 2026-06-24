@@ -1,7 +1,7 @@
 import type * as T from "fp-ts/Task";
 import type { FwAdContext, FwAdSlot, FwSdk } from "..";
 
-export * as Setup from "./setup";
+export * from "./setup";
 
 export interface AdRequestDeps {
   readonly SDK: FwSdk.SDK;
