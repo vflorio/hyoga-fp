@@ -36,6 +36,7 @@ const instancePhaseEffect = (state: MachineState) => (instance: FwAdRequestMachi
     IO.tap((newState) => instance.deps.logger.debug(`[MachineInstance] Effect end ${newState.phase._tag}`)),
   );
 
+// TODO
 declare const actions: {
   // Riproduce lo slot
   playPreroll: IO.IO<void>;
@@ -85,14 +86,13 @@ export class FwAdRequestMachineInstance implements FwAdRequestMachine {
   // Public API
 
   public readonly requestAds: T.Task<ReadonlyArray<FwAdSlot.AdSlot>> = pipe(
+    // Impostiamo parametri e configurazione al contesto corrente
     T.fromIO(this.setupAdContext),
     T.tapIO(() => this.deps.logger.info("[MachineInstance] requestAds: submitting AD request")),
-    T.flatMap(() =>
-      FwAdRequest.submit({
-        adContext: this.deps.adContext,
-        SDK: this.deps.SDK,
-      }),
-    ),
+    // Registriamo i listeners diagnostici per forwardare eventi dell'SDK di FreeWheel
+    T.flatMap(() => T.fromIO(this.diagnostics.register)),
+    // Effettuaimo la richiesta all'ADServer, che ci restituirà gli slots da erogare
+    T.flatMap(() => FwAdRequest.submit(this.deps)),
   );
 
   // Questa viene usata in caso si voglia eseguire una nuova richiesta AD prima di aver terminato gli slots

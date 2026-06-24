@@ -13,19 +13,18 @@ export type { DiagnosticsDomainHandler };
 // 3. lo trasmette attraverso la funzione emit delle dipendenze
 // Viene utilizzato solo all'interno dei DiagnosticsDomainHandler per gestire la callback di un evento dell'SDK
 // TODO: fare una funzione di parsing esplicita con Either
-export const dispatch = (deps: DiagnosticDeps, eventName: string, fromRawEvent: (raw: any) => FwSdk.Event | null) => {
-  const { emit, logger } = deps;
-
-  return (raw: any): void =>
+export const dispatchSdkEvent =
+  (deps: DiagnosticDeps, eventName: string, parseSdkEventFrom: (raw: unknown) => FwSdk.Event | null) =>
+  (raw: unknown): void =>
     pipe(
-      O.fromNullable(fromRawEvent(raw)),
+      O.fromNullable(parseSdkEventFrom(raw)),
       O.match(
         () =>
           pipe(
-            logger.warn(`[dispatch] ValidationError on ${eventName}`, raw),
+            deps.logger.warn(`[dispatch] ValidationError on ${eventName}`, raw),
             IO.flatMap(
               () => () =>
-                emit({
+                deps.emit({
                   _tag: "ValidationError",
                   eventName,
                   rawPayload: raw,
@@ -35,11 +34,11 @@ export const dispatch = (deps: DiagnosticDeps, eventName: string, fromRawEvent: 
           ),
         (event) =>
           pipe(
-            logger.debug(`[dispatch] ${event._tag}`, event),
-            IO.flatMap(() => () => emit(event)),
+            deps.logger.debug(`[dispatch] ${event._tag}`, event),
+            IO.flatMap(() => () => deps.emit(event)),
           ),
       ),
     )();
-};
 
-export const extractAdId = (event: any): string => event?.adInstance?.getAdId?.() ?? event?.adId ?? "unknown";
+export const extractAdId = (event: unknown): string =>
+  (event as any)?.adInstance?.getAdId?.() ?? (event as any)?.adId ?? "unknown";

@@ -1,4 +1,4 @@
-import { type DiagnosticsDomainHandler, dispatch } from "..";
+import { type DiagnosticsDomainHandler, dispatchSdkEvent } from "..";
 import type { DiagnosticDeps } from "../diagnostics";
 
 export const withSlotLifecycle = (deps: DiagnosticDeps): DiagnosticsDomainHandler => {
@@ -16,7 +16,7 @@ export const withSlotLifecycle = (deps: DiagnosticDeps): DiagnosticsDomainHandle
   };
 
   const adapter = {
-    onSlotImpression: dispatch(deps, "SLOT_IMPRESSION", (rawEvent) => {
+    onSlotImpression: dispatchSdkEvent(deps, "SLOT_IMPRESSION", (rawEvent) => {
       const slot = extractSlot(rawEvent);
       return slot
         ? {
@@ -25,7 +25,7 @@ export const withSlotLifecycle = (deps: DiagnosticDeps): DiagnosticsDomainHandle
           }
         : null;
     }),
-    onSlotEnd: dispatch(deps, "SLOT_END", (rawEvent) => {
+    onSlotEnd: dispatchSdkEvent(deps, "SLOT_END", (rawEvent) => {
       const slot = extractSlot(rawEvent);
       return slot
         ? {

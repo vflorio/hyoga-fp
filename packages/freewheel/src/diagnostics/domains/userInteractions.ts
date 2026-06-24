@@ -1,14 +1,16 @@
-import { type DiagnosticsDomainHandler, dispatch, extractAdId } from "..";
+import { type DiagnosticsDomainHandler, dispatchSdkEvent, extractAdId } from "..";
 import type { DiagnosticDeps } from "../diagnostics";
 
 export const withUserInteractions = (deps: DiagnosticDeps): DiagnosticsDomainHandler => {
   const { adContext, SDK } = deps;
 
   const adapter = {
-    onAdClick: dispatch(deps, "AD_CLICK", (rawEvent) => {
-      const url = rawEvent?.url || "";
-      const type = rawEvent?.type || "";
-
+    onAdClick: dispatchSdkEvent(deps, "AD_CLICK", (rawEvent) => {
+      const extractUrlType = (event: unknown): [string, string] => [
+        (event as any)?.url ?? (event as any)?.url ?? "unknown",
+        (event as any)?.type ?? (event as any)?.type ?? "unknown",
+      ];
+      const [url, type] = extractUrlType(rawEvent);
       return url || type.includes("defaultClick")
         ? {
             _tag: "AdClick",
@@ -17,48 +19,49 @@ export const withUserInteractions = (deps: DiagnosticDeps): DiagnosticsDomainHan
           }
         : null;
     }),
-    onAdMute: dispatch(deps, "AD_MUTE", (rawEvent) => ({
+    onAdMute: dispatchSdkEvent(deps, "AD_MUTE", (rawEvent) => ({
       _tag: "AdMute",
       adId: extractAdId(rawEvent),
     })),
-    onAdUnmute: dispatch(deps, "AD_UNMUTE", (rawEvent) => ({
+    onAdUnmute: dispatchSdkEvent(deps, "AD_UNMUTE", (rawEvent) => ({
       _tag: "AdUnmute",
       adId: extractAdId(rawEvent),
     })),
-    onAdPause: dispatch(deps, "AD_PAUSE", (rawEvent) => ({
+    onAdPause: dispatchSdkEvent(deps, "AD_PAUSE", (rawEvent) => ({
       _tag: "AdPause",
       adId: extractAdId(rawEvent),
     })),
-    onAdResume: dispatch(deps, "AD_RESUME", (rawEvent) => ({
+    onAdResume: dispatchSdkEvent(deps, "AD_RESUME", (rawEvent) => ({
       _tag: "AdResume",
       adId: extractAdId(rawEvent),
     })),
-    onAdRewind: dispatch(deps, "AD_REWIND", (rawEvent) => ({
+    onAdRewind: dispatchSdkEvent(deps, "AD_REWIND", (rawEvent) => ({
       _tag: "AdRewind",
       adId: extractAdId(rawEvent),
     })),
-    onAdCollapse: dispatch(deps, "AD_COLLAPSE", (rawEvent) => ({
+    onAdCollapse: dispatchSdkEvent(deps, "AD_COLLAPSE", (rawEvent) => ({
       _tag: "AdCollapse",
       adId: extractAdId(rawEvent),
     })),
-    onAdExpand: dispatch(deps, "AD_EXPAND", (rawEvent) => ({
+    onAdExpand: dispatchSdkEvent(deps, "AD_EXPAND", (rawEvent) => ({
       _tag: "AdExpand",
       adId: extractAdId(rawEvent),
     })),
-    onAdAcceptInvitation: dispatch(deps, "AD_ACCEPT_INVITATION", (rawEvent) => ({
+    onAdAcceptInvitation: dispatchSdkEvent(deps, "AD_ACCEPT_INVITATION", (rawEvent) => ({
       _tag: "AdAcceptInvitation",
       adId: extractAdId(rawEvent),
     })),
-    onAdClose: dispatch(deps, "AD_CLOSE", (rawEvent) => ({
+    onAdClose: dispatchSdkEvent(deps, "AD_CLOSE", (rawEvent) => ({
       _tag: "AdClose",
       adId: extractAdId(rawEvent),
     })),
-    onAdMinimize: dispatch(deps, "AD_MINIMIZE", (rawEvent) => ({
+    onAdMinimize: dispatchSdkEvent(deps, "AD_MINIMIZE", (rawEvent) => ({
       _tag: "AdMinimize",
       adId: extractAdId(rawEvent),
     })),
-    onAdVolumeChange: dispatch(deps, "AD_VOLUME_CHANGE", (rawEvent) => {
-      const volume = typeof rawEvent?.volume === "number" ? rawEvent.volume : NaN;
+    onAdVolumeChange: dispatchSdkEvent(deps, "AD_VOLUME_CHANGE", (rawEvent) => {
+      const extractVolume = (event: unknown): number => (event as any)?.volume ?? (event as any)?.volume ?? NaN;
+      const volume = extractVolume(rawEvent);
       return Number.isFinite(volume)
         ? {
             _tag: "AdVolumeChange",
@@ -67,8 +70,10 @@ export const withUserInteractions = (deps: DiagnosticDeps): DiagnosticsDomainHan
           }
         : null;
     }),
-    onAdSkippableStateChanged: dispatch(deps, "AD_SKIPPABLE_STATE_CHANGED", (rawEvent) => {
-      const skippable = typeof rawEvent?.skippableState === "boolean" ? rawEvent.skippableState : null;
+    onAdSkippableStateChanged: dispatchSdkEvent(deps, "AD_SKIPPABLE_STATE_CHANGED", (rawEvent) => {
+      const extractSkippable = (event: unknown): boolean | null =>
+        typeof (event as any)?.skippableState === "boolean" ? (event as any).skippableState : null;
+      const skippable = extractSkippable(rawEvent);
       return skippable !== null
         ? {
             _tag: "AdSkippableStateChanged",

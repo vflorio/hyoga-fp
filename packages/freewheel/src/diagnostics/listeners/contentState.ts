@@ -1,14 +1,14 @@
-import { type DiagnosticsDomainHandler, dispatch } from "..";
+import { type DiagnosticsDomainHandler, dispatchSdkEvent } from "..";
 import type { DiagnosticDeps } from "../diagnostics";
 
 export const withContentState = (deps: DiagnosticDeps): DiagnosticsDomainHandler => {
   const { adContext, SDK } = deps;
 
   const adapter = {
-    onContentVideoPaused: dispatch(deps, "CONTENT_VIDEO_PAUSED", () => ({
+    onContentVideoPaused: dispatchSdkEvent(deps, "CONTENT_VIDEO_PAUSED", () => ({
       _tag: "ContentVideoPaused",
     })),
-    onContentVideoResumed: dispatch(deps, "CONTENT_VIDEO_RESUMED", () => ({
+    onContentVideoResumed: dispatchSdkEvent(deps, "CONTENT_VIDEO_RESUMED", () => ({
       _tag: "ContentVideoResumed",
     })),
   };

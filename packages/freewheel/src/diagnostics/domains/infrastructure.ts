@@ -1,30 +1,30 @@
-import { type DiagnosticsDomainHandler, dispatch, extractAdId } from "..";
+import { type DiagnosticsDomainHandler, dispatchSdkEvent, extractAdId } from "..";
 import type { DiagnosticDeps } from "../diagnostics";
 
 export const withInfrastructure = (deps: DiagnosticDeps): DiagnosticsDomainHandler => {
   const { adContext, SDK } = deps;
 
   const adapter = {
-    onRequestInitiated: dispatch(deps, "REQUEST_INITIATED", () => ({
+    onRequestInitiated: dispatchSdkEvent(deps, "REQUEST_INITIATED", () => ({
       _tag: "RequestInitiated",
     })),
-    onResellerNoAd: dispatch(deps, "RESELLER_NO_AD", (rawEvent) => ({
+    onResellerNoAd: dispatchSdkEvent(deps, "RESELLER_NO_AD", (rawEvent) => ({
       _tag: "ResellerNoAd",
       adId: extractAdId(rawEvent),
     })),
-    onExtensionLoaded: dispatch(deps, "EXTENSION_LOADED", (rawEvent) => ({
+    onExtensionLoaded: dispatchSdkEvent(deps, "EXTENSION_LOADED", (rawEvent) => ({
       _tag: "ExtensionLoaded",
-      moduleType: typeof rawEvent?.moduleType === "string" ? rawEvent.moduleType : "unknown",
-      customId: typeof rawEvent?.customId === "string" ? rawEvent.customId : "unknown",
+      moduleType: typeof (rawEvent as any)?.moduleType === "string" ? (rawEvent as any).moduleType : "unknown",
+      customId: typeof (rawEvent as any)?.customId === "string" ? (rawEvent as any).customId : "unknown",
     })),
-    onVideoDisplayBaseChanged: dispatch(deps, "VIDEO_DISPLAY_BASE_CHANGED", () => ({
+    onVideoDisplayBaseChanged: dispatchSdkEvent(deps, "VIDEO_DISPLAY_BASE_CHANGED", () => ({
       _tag: "VideoDisplayBaseChanged",
     })),
-    onAdError: dispatch(deps, "ERROR", (rawEvent) => ({
+    onAdError: dispatchSdkEvent(deps, "ERROR", (rawEvent) => ({
       _tag: "AdError",
-      errorCode: rawEvent?.errorCode ?? "unknown",
-      errorInfo: rawEvent?.errorInfo ?? "unknown",
-      errorModule: rawEvent?.errorModule ?? "unknown",
+      errorCode: (rawEvent as any)?.errorCode ?? "unknown",
+      errorInfo: (rawEvent as any)?.errorInfo ?? "unknown",
+      errorModule: (rawEvent as any)?.errorModule ?? "unknown",
     })),
   };
 
