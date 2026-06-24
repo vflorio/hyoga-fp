@@ -27,8 +27,10 @@
   "private": true,
   "scripts": {
     "clean": "rm -rf dist",
-    "demo:freewheel:build": "tsc -b && vite build --mode freewheel",
-    "demo:freewheel:dev": "vite --mode freewheel",
+    "demo:freewheel:build:test": "tsc -b && vite build --mode test",
+    "demo:freewheel:build:stage": "tsc -b && vite build --mode stage",
+    "demo:freewheel:dev:test": "vite --mode test",
+    "demo:freewheel:dev:stage": "vite --mode stage",
     "preview": "vite preview"
   },
   "type": "module"

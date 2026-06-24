@@ -27,4 +27,5 @@ dist-ssr
 .github
 *:Zone.Identifier
 
+.env.stage
 AdManager.js

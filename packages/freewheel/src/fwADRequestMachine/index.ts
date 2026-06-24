@@ -18,7 +18,7 @@ export interface FwAdRequestMachine {
   readonly pause: IO.IO<void>;
   readonly resume: IO.IO<void>;
 
-  // Debugs Utils
+  // Debug Utils
   readonly getPhase: IO.IO<MachinePhase>;
   readonly getState: IO.IO<MachineState>;
   readonly onPhaseChange: (callback: (phase: MachinePhase) => void) => IO.IO<void>;
