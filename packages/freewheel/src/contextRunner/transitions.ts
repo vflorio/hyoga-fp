@@ -1,15 +1,19 @@
 import { pipe } from "fp-ts/lib/function";
-import { O, RA } from ".";
-import type { AdSlot, TimePositionClassIdentifiers } from "./freewheel";
-import type { PlaybackPhase, PlayerState } from "./model";
+import * as O from "fp-ts/Option";
+import * as RA from "fp-ts/ReadonlyArray";
+import type { FreeWheel } from "../freeWheel";
+import type { PlaybackPhase, PlayerState } from "./state";
 
 export const setPhase =
   (phase: PlaybackPhase) =>
-  (state: PlayerState): PlayerState => ({ ...state, phase });
+  (state: PlayerState): PlayerState => {
+    console.log("setPhase", { phase, state });
+    return { ...state, phase };
+  };
 
 export const applySlots =
-  (timePositionClassIds: TimePositionClassIdentifiers) =>
-  (allSlots: ReadonlyArray<AdSlot>) =>
+  (timePositionClassIds: FreeWheel.TimePositionClassIdentifiers) =>
+  (allSlots: ReadonlyArray<FreeWheel.AdSlot>) =>
   (state: PlayerState): PlayerState => {
     const by = (classId: string) =>
       pipe(
@@ -28,7 +32,7 @@ export const applySlots =
   };
 
 export const popPreroll =
-  (slot: AdSlot) =>
+  (slot: FreeWheel.AdSlot) =>
   (state: PlayerState): PlayerState => ({
     ...state,
     prerollSlots: RA.dropLeft(1)(state.prerollSlots),
@@ -37,7 +41,7 @@ export const popPreroll =
   });
 
 export const popPostroll =
-  (slot: AdSlot) =>
+  (slot: FreeWheel.AdSlot) =>
   (state: PlayerState): PlayerState => ({
     ...state,
     postrollSlots: RA.dropLeft(1)(state.postrollSlots),
@@ -46,7 +50,7 @@ export const popPostroll =
   });
 
 export const popMidroll =
-  (slot: AdSlot, pausedAt: number) =>
+  (slot: FreeWheel.AdSlot, pausedAt: number) =>
   (state: PlayerState): PlayerState => ({
     ...state,
     midrollSlots: RA.dropLeft(1)(state.midrollSlots),

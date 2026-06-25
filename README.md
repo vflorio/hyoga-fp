@@ -28,16 +28,6 @@ Run all packages in watch mode:
 pnpm dev
 ```
 
-### Running Specific Applications
-
-**Runtime Demo**
-
-Run the standalone runtime demo:
-
-```bash
-pnpm --filter @hyoga-fp/runtime-demo dev
-```
-
 Clean build artifacts:
 
 ```bash
@@ -68,4 +58,14 @@ Fix version mismatches:
 
 ```bash
 pnpm syncpack:fix
+```
+
+### Running Specific Applications
+
+**Demo**
+
+Run the standalone demo:
+
+```bash
+pnpm --filter @hyoga-fp/demo demo:dev
 ```
