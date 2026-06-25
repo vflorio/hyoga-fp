@@ -90,7 +90,7 @@ await page.addInitScript(() => {
   observer.observe(document, { childList: true, subtree: true });
 });
 
-await page.goto("http://localhost:5174");
+await page.goto("http://localhost:5173");
 await page.waitForTimeout(3000);
 
 // Click Play

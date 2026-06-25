@@ -13,7 +13,7 @@ page.on("console", async (msg) => {
   }
 });
 
-await page.goto("http://localhost:5174");
+await page.goto("http://localhost:5173");
 await page.waitForTimeout(2000);
 
 // Monkey-patch AdManager prototype to intercept getTemporalSlots on any context

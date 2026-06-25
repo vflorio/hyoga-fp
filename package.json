@@ -31,7 +31,8 @@
     "syncpack:fix": "syncpack fix-mismatches",
     "syncpack:format": "syncpack format",
     "syncpack:list": "syncpack list",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "e2e:full-pod": "pnpm --filter @hyoga-fp/e2e test:full-pod"
   },
   "type": "module"
 }

@@ -49,6 +49,14 @@ const isAdRelatedUrl = (url: string): boolean => FW_TRACKING_PATTERNS.some((p) =
 
 export const test = base.extend<AdTestFixtures>({
   adRuntime: async ({ page }, use) => {
+    // Override navigator.webdriver BEFORE any page loads.
+    // FreeWheel SDK reads this property in addBrowserParams() and sends _fw_br_wd
+    // to the ad server. When _fw_br_wd=1, the server classifies the request as
+    // IVT (Invalid Traffic) and returns 0 ads in all temporal slots.
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "webdriver", { get: () => false });
+    });
+
     const fixture = {
       waitForSession: async (): Promise<AdSession> => {
         await page.waitForFunction(() => window.__AD_RUNTIME__ != null, { timeout: 30_000 });

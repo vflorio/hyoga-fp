@@ -31,7 +31,7 @@ page.on("console", (msg) => {
   }
 });
 
-await page.goto("http://localhost:5175");
+await page.goto("http://localhost:5173");
 await page.waitForTimeout(3000);
 
 // Click Play

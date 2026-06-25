@@ -16,7 +16,7 @@ page.on("console", (msg) => {
   }
 });
 
-await page.goto("http://localhost:5174");
+await page.goto("http://localhost:5173");
 await page.waitForTimeout(3000);
 
 const btn = page.locator("button").first();
