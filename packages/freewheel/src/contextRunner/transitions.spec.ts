@@ -18,6 +18,8 @@ const mockSlot = (timePositionClass: string, timePosition = 0): AdSlot => ({
   getTimePositionClass: () => timePositionClass,
   getTimePosition: () => timePosition,
   getAdCount: () => 1,
+  getCustomId: () => "",
+  getAdUnit: () => "",
   play: () => {},
   pause: () => {},
   resume: () => {},

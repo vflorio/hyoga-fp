@@ -39,6 +39,7 @@ const EnvCodec = t.type({
   VITE_FW_FALLBACK_SITE_ID: IntFromString,
   VITE_FW_VIDEO_CONTAINER: t.string,
   VITE_FW_DISABLE_AUTO_PAUSE: BooleanFromString,
+  VITE_ENABLE_AD_RUNTIME: BooleanFromString, // FIXME TODO make this optional and default to false
   VITE_HYOGA_LOG_LEVEL: t.keyof({
     debug: null,
     info: null,

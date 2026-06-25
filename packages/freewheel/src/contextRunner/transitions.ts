@@ -15,10 +15,33 @@ export const applySlots =
   (timePositionClassIds: FreeWheel.TimePositionClassIdentifiers) =>
   (allSlots: ReadonlyArray<FreeWheel.AdSlot>) =>
   (state: PlayerState): PlayerState => {
+    const classify = (slot: FreeWheel.AdSlot): string | null => {
+      const tpc = slot.getTimePositionClass();
+      if (tpc != null) return tpc;
+
+      // Fallback: classify by adUnit or customId when server returns null
+      const adUnit = slot.getAdUnit?.()?.toLowerCase?.() ?? "";
+      if (adUnit === "preroll") return timePositionClassIds.TIME_POSITION_CLASS_PREROLL;
+      if (adUnit === "midroll") return timePositionClassIds.TIME_POSITION_CLASS_MIDROLL;
+      if (adUnit === "overlay") return timePositionClassIds.TIME_POSITION_CLASS_OVERLAY;
+      if (adUnit === "postroll") return timePositionClassIds.TIME_POSITION_CLASS_POSTROLL;
+      if (adUnit === "pause_midroll") return timePositionClassIds.TIME_POSITION_CLASS_PAUSE_MIDROLL;
+
+      const customId = slot.getCustomId?.()?.toLowerCase?.() ?? "";
+      if (customId.includes("preroll")) return timePositionClassIds.TIME_POSITION_CLASS_PREROLL;
+      if (customId.includes("midroll") && !customId.includes("pause"))
+        return timePositionClassIds.TIME_POSITION_CLASS_MIDROLL;
+      if (customId.includes("overlay")) return timePositionClassIds.TIME_POSITION_CLASS_OVERLAY;
+      if (customId.includes("postroll")) return timePositionClassIds.TIME_POSITION_CLASS_POSTROLL;
+      if (customId.includes("pause")) return timePositionClassIds.TIME_POSITION_CLASS_PAUSE_MIDROLL;
+
+      return null;
+    };
+
     const by = (classId: string) =>
       pipe(
         allSlots,
-        RA.filter((slot) => slot.getTimePositionClass() === classId),
+        RA.filter((slot) => classify(slot) === classId),
       );
 
     return {

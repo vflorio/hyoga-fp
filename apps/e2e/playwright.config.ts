@@ -35,7 +35,7 @@ export default defineConfig({
         reuseExistingServer: false,
         timeout: 30_000,
         env: {
-          VITE_ENABLE_AD_RUNTIME: "true",
+          VITE_ENABLE_AD_RUNTIME: "false",
         },
       }
     : undefined,

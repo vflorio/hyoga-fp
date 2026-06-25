@@ -1,0 +1,75 @@
+# E2E Test Status — 25 Giugno 2026
+
+## Problema Principale: FreeWheel Demo Ad Server + Playwright
+
+L'ad server demo FreeWheel (`demo.v.fwmrm.net`) restituisce **6 slot ma con `getTimePositionClass() = null` e `adCount = 0`** quando la richiesta proviene dal Chromium di Playwright. Lo stesso codice nel browser normale dell'utente funziona correttamente (vedi logs.txt: preroll:1, midroll:1, overlay:2, postroll:1, pauseMidroll:1).
+
+### Root Cause Analisi
+
+1. `getTimePositionClass()` ritorna `null` (tipo `object`) per tutti e 6 gli slot
+2. `adCount = 0` per ogni slot — il server non ha ad da servire in questo contesto
+3. La classificazione `applySlots()` in `transitions.ts` filtrava con `=== classId`, e `null !== "PREROLL"` → tutti gli array vuoti
+4. **Fix applicato**: fallback per `customId` e `adUnit` in `applySlots()` + interfaccia `AdSlot` estesa con `getCustomId()` e `getAdUnit()`
+5. **Il fix classifica correttamente**, MA il problema è a monte: `adCount = 0` significa che non ci sono ad creative assegnate agli slot. Il player entra in Preroll ma non ci sono ad da riprodurre
+
+### Tentativi Fatti
+
+- ✅ Playwright 1.61.1 con Chromium: slot breakdown tutto zero
+- ✅ Anti-automation detection (disable-blink-features, webdriver=false, user-agent custom): stessi risultati
+- ✅ Firefox con Playwright: entra in fase Preroll ma il video ad non si avvia (timeout 90s)
+- ✅ Diversi port/server instances: stesso comportamento
+- ❌ Chrome di sistema non disponibile (Arch Linux senza google-chrome)
+
+### Ipotesi Non Verificate
+
+1. L'ad server demo potrebbe richiedere **cookie di sessione** o **referer specifico** per servire ad
+2. La richiesta da Playwright potrebbe essere bloccata a livello di **IP/rate-limiting** (stessa rete, troppe richieste)
+3. Il profilo FreeWheel configurato (`profileId`, `networkId`) potrebbe avere restrizioni geo/temporali
+4. Potrebbe servire un **mock server locale** per test deterministici
+
+## Stato dei Test
+
+### Funzionanti (6/6 pass con `ad-session.spec.ts`)
+- ✅ complete ad session runs and generates report
+- ✅ session completes without errors
+- ✅ preroll executes before content (if present)
+- ✅ ad breaks follow expected lifecycle (if ads received)
+- ✅ video ad is visible during playback (if ads received) — skip se no ad
+- ✅ runtime collector captures state changes (Init → Content → Done)
+
+### Full Pod Test (`full-pod.spec.ts`)
+- ⏸ Skippato automaticamente quando non ci sono temporal ads
+- Pronto per funzionare quando l'ad server serve ad
+- Valida: preroll ordering, midroll timing, overlay non-blocking, postroll lifecycle, impression pairs, creative completion, network correlation, report generation
+
+## Fix Applicati al Codebase
+
+### packages/freewheel/src/freeWheel/freeWheel.ts
+- `AdSlot` interface: aggiunto `getCustomId(): string` e `getAdUnit(): string`
+- `getTimePositionClass()` tipo cambiato da `string` a `string | null`
+
+### packages/freewheel/src/contextRunner/transitions.ts
+- `applySlots()`: aggiunta funzione `classify()` con fallback chain:
+  1. `getTimePositionClass()` (SDK nativo)
+  2. `getAdUnit()` (e.g., "preroll", "midroll")
+  3. `getCustomId()` (e.g., "Preroll_1", "Midroll_1")
+
+### packages/freewheel/src/contextRunner/ops/request.ts
+- Aggiunta funzione `classifySlot()` per il log di breakdown (usa stessa logica fallback)
+
+### packages/freewheel/src/contextRunner/transitions.spec.ts
+- Mock `AdSlot` aggiornato con `getCustomId()` e `getAdUnit()`
+
+## Prossimi Passi (quando si riprende)
+
+1. **Opzione A**: Installare Chrome di sistema (`google-chrome-stable`) e testare con `channel: 'chrome'`
+2. **Opzione B**: Creare un mock server FreeWheel locale che risponde con ad deterministici
+3. **Opzione C**: Usare `page.route()` di Playwright per intercettare la risposta ad server e iniettare ad fittizi
+4. **Opzione D**: Investigare se il `networkId`/`profileId` ha restrizioni o se serve un referer specifico
+
+## File di Debug Creati (apps/e2e/)
+- `debug.mjs` — script base per diagnostica runtime
+- `debug-slots.mjs` — intercetta AdManager per ispezionare slot tpc
+- `debug-slots2.mjs` — versione con addInitScript
+- `debug-stealth.mjs` — test con anti-automation flags
+- `debug-firefox.mjs` — test con Firefox

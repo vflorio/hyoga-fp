@@ -5,6 +5,28 @@ import type { FreeWheel } from "../../freeWheel";
 import type { ContextRunnerOpContext } from "..";
 import * as Transitions from "../transitions";
 
+// Classify a slot by timePositionClass with fallback to adUnit/customId
+const classifySlot = (slot: FreeWheel.AdSlot, SDK: FreeWheel.SDK): string | null => {
+  const tpc = slot.getTimePositionClass();
+  if (tpc != null) return tpc;
+
+  const adUnit = slot.getAdUnit?.()?.toLowerCase?.() ?? "";
+  if (adUnit === "preroll") return SDK.TIME_POSITION_CLASS_PREROLL;
+  if (adUnit === "midroll") return SDK.TIME_POSITION_CLASS_MIDROLL;
+  if (adUnit === "overlay") return SDK.TIME_POSITION_CLASS_OVERLAY;
+  if (adUnit === "postroll") return SDK.TIME_POSITION_CLASS_POSTROLL;
+  if (adUnit === "pause_midroll") return SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL;
+
+  const customId = slot.getCustomId?.()?.toLowerCase?.() ?? "";
+  if (customId.includes("preroll")) return SDK.TIME_POSITION_CLASS_PREROLL;
+  if (customId.includes("midroll") && !customId.includes("pause")) return SDK.TIME_POSITION_CLASS_MIDROLL;
+  if (customId.includes("overlay")) return SDK.TIME_POSITION_CLASS_OVERLAY;
+  if (customId.includes("postroll")) return SDK.TIME_POSITION_CLASS_POSTROLL;
+  if (customId.includes("pause")) return SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL;
+
+  return null;
+};
+
 export interface RequestOps {
   readonly requestAds: T.Task<void>;
 }
@@ -49,12 +71,11 @@ export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: I
           logger.info(`[RequestOps] requestAds: received ${slots.length} slots`, { slots }),
           IO.flatMap(() =>
             logger.debug("[RequestOps] requestAds: slot breakdown", {
-              preroll: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_PREROLL).length,
-              midroll: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_MIDROLL).length,
-              overlay: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_OVERLAY).length,
-              postroll: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_POSTROLL).length,
-              pauseMidroll: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL)
-                .length,
+              preroll: slots.filter((s) => classifySlot(s, SDK) === SDK.TIME_POSITION_CLASS_PREROLL).length,
+              midroll: slots.filter((s) => classifySlot(s, SDK) === SDK.TIME_POSITION_CLASS_MIDROLL).length,
+              overlay: slots.filter((s) => classifySlot(s, SDK) === SDK.TIME_POSITION_CLASS_OVERLAY).length,
+              postroll: slots.filter((s) => classifySlot(s, SDK) === SDK.TIME_POSITION_CLASS_POSTROLL).length,
+              pauseMidroll: slots.filter((s) => classifySlot(s, SDK) === SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL).length,
             }),
           ),
           IO.flatMap(() =>
