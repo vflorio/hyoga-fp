@@ -48,6 +48,10 @@ const EnvCodec = t.type({
   }),
 });
 
+const OptionalEnvCodec = t.partial({
+  VITE_ENABLE_AD_RUNTIME: BooleanFromString,
+});
+
 // --- Parse and export ---
 
 const formatErrors = (errors: t.Errors): string =>
@@ -67,17 +71,24 @@ export const config = pipe(
     (errors) => {
       throw new Error(`Invalid environment configuration:\n${formatErrors(errors)}`);
     },
-    (env) => ({
-      networkId: env.VITE_FW_NETWORK_ID,
-      serverURL: env.VITE_FW_SERVER_URL,
-      profileId: env.VITE_FW_PROFILE_ID,
-      videoAssetId: env.VITE_FW_VIDEO_ASSET_ID,
-      siteSectionId: env.VITE_FW_SITE_SECTION_ID,
-      videoDuration: env.VITE_FW_VIDEO_DURATION,
-      fallbackSiteId: env.VITE_FW_FALLBACK_SITE_ID,
-      videoContainer: env.VITE_FW_VIDEO_CONTAINER,
-      disableAutoPause: env.VITE_FW_DISABLE_AUTO_PAUSE,
-      logLevel: env.VITE_HYOGA_LOG_LEVEL,
-    }),
+    (env) => {
+      const optional = pipe(
+        OptionalEnvCodec.decode(import.meta.env),
+        E.getOrElse(() => ({}) as t.TypeOf<typeof OptionalEnvCodec>),
+      );
+      return {
+        networkId: env.VITE_FW_NETWORK_ID,
+        serverURL: env.VITE_FW_SERVER_URL,
+        profileId: env.VITE_FW_PROFILE_ID,
+        videoAssetId: env.VITE_FW_VIDEO_ASSET_ID,
+        siteSectionId: env.VITE_FW_SITE_SECTION_ID,
+        videoDuration: env.VITE_FW_VIDEO_DURATION,
+        fallbackSiteId: env.VITE_FW_FALLBACK_SITE_ID,
+        videoContainer: env.VITE_FW_VIDEO_CONTAINER,
+        disableAutoPause: env.VITE_FW_DISABLE_AUTO_PAUSE,
+        logLevel: env.VITE_HYOGA_LOG_LEVEL,
+        enableAdRuntime: optional.VITE_ENABLE_AD_RUNTIME ?? false,
+      };
+    },
   ),
 );

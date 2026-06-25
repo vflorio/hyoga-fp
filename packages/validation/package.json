@@ -1,14 +1,10 @@
 {
-  "name": "@hyoga-fp/freewheel",
+  "name": "@hyoga-fp/validation",
   "version": "1.0.0",
-  "dependencies": {
-    "@hyoga-fp/core": "workspace:*",
-    "@hyoga-fp/validation": "workspace:*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "fp-ts": "2.16.11",
     "io-ts": "2.2.22",
-    "ts-pattern": "5.9.0",
     "typescript": "5.9.3"
   },
   "exports": {
@@ -28,15 +24,5 @@
     "test": "vitest run"
   },
   "type": "module",
-  "types": "./dist/index.d.ts",
-  "typesVersions": {
-    "*": {
-      "dom": [
-        "./dist/dom/index.d.ts"
-      ],
-      "storage": [
-        "./dist/storage/index.d.ts"
-      ]
-    }
-  }
+  "types": "./dist/index.d.ts"
 }

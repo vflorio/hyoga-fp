@@ -1,5 +1,11 @@
 import { createLogger, EventStream, type LogLevel } from "@hyoga-fp/core";
-import { type ContextRunner, type FreeWheel, FreeWheelPlayer, type Model } from "@hyoga-fp/freewheel";
+import {
+  type ContextRunner,
+  createAdRuntimeCollector,
+  type FreeWheel,
+  FreeWheelPlayer,
+  type Model,
+} from "@hyoga-fp/freewheel";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { config } from "./env";
@@ -54,6 +60,21 @@ export const useFreeWheelPlayer = () => {
   // Il lifecycle dell'EventStream è gestito dal consumer del player
   const eventStream = useRef(new EventStream<Model.SDKEvent>("freewheel-events"));
 
+  // Runtime collector for ad validation (opt-in via VITE_ENABLE_AD_RUNTIME)
+  const collector = useRef(config.enableAdRuntime ? createAdRuntimeCollector() : null);
+
+  // Expose __AD_RUNTIME__ globally when enabled
+  useEffect(() => {
+    if (collector.current && config.enableAdRuntime) {
+      (window as any).__AD_RUNTIME__ = collector.current.getSession();
+    }
+    return () => {
+      if (config.enableAdRuntime) {
+        delete (window as any).__AD_RUNTIME__;
+      }
+    };
+  }, []);
+
   const [runnerState, setRunnerState] = useState<ContextRunner.PlayerState | null>(null);
 
   const runner = useMemo(
@@ -63,8 +84,14 @@ export const useFreeWheelPlayer = () => {
         SDK,
         logger: createLogger("FreeWheelPlayer", config.logLevel satisfies LogLevel),
         videoAdapter: createVideoAdapterFrom(videoElement),
-        emit: eventStream.current.broadcast,
-        emitStateChange: setRunnerState,
+        emit: (event) => {
+          eventStream.current.broadcast(event);
+          collector.current?.onEvent(event);
+        },
+        emitStateChange: (state) => {
+          setRunnerState(state);
+          collector.current?.onStateChange(state);
+        },
       }),
     [videoElement],
   );
