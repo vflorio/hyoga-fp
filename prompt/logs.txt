@@ -1,0 +1,63 @@
+[hyoga-fp] FreeWheelPlayer [RequestOps] requestAds: configuring ad context
+[hyoga-fp] FreeWheelPlayer [RequestOps] setupBusinessAdContext: configuring ad context
+[hyoga-fp] FreeWheelPlayer [RequestOps] requestAds: registering SDK event listeners
+[hyoga-fp] FreeWheelPlayer [RequestOps] requestAds: submitting ad request
+[hyoga-fp] FreeWheelPlayer [RequestOps] requestAds: received 6 slots {slots: Array(6)}
+[hyoga-fp] FreeWheelPlayer [RequestOps] requestAds: slot breakdown {preroll: 1, midroll: 1, overlay: 2, postroll: 1, pauseMidroll: 1}
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: CURRENT -> "Init" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(0), overlaySlots: Array(0), postrollSlots: Array(0), …}
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: NEXT -> "Init" {phase: {…}, prerollSlots: Array(1), midrollSlots: Array(1), overlaySlots: Array(2), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [RequestOps] requestAds: state updated, starting preroll chain
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] playPreroll: playing slot (1 remaining)
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: CURRENT -> "Init" {phase: {…}, prerollSlots: Array(1), midrollSlots: Array(1), overlaySlots: Array(2), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: NEXT -> "Preroll" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(1), overlaySlots: Array(2), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [dispatch] AdImpression {_tag: 'AdImpression', adId: '8807980'}
+[hyoga-fp] FreeWheelPlayer [dispatch] AdImpressionEnd {_tag: 'AdImpressionEnd', adId: '8807980'}
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotEnded: classId=PREROLL, adCount=1
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotEnded: decision -> playPreroll
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] playPreroll: no prerolls remaining, starting content
+[hyoga-fp] FreeWheelPlayer [PlaybackOps] playContent: seeking to 0s, src=https://ott.dolby.com/OnDelKits/AC-4/Dolby_AC-4_Online_Delivery_Kit_1.5/Test_Signals/muxed_streams/MP4/Example/Audio_ID_720p_25fps_h264_2ch_64kbps_ac4.mp4
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: CURRENT -> "Preroll" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(1), overlaySlots: Array(2), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: NEXT -> "Content" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(1), overlaySlots: Array(2), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [PlaybackOps] onContentTimeUpdate: midroll triggered at t=5.57s (cue=6s), pausing content
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: CURRENT -> "Content" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(1), overlaySlots: Array(2), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: NEXT -> "Midroll" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(0), overlaySlots: Array(2), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onContentPauseRequest: SDK requested content pause
+[hyoga-fp] FreeWheelPlayer [dispatch] ContentVideoPaused {_tag: 'ContentVideoPaused'}
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotStarted: classId=MIDROLL, adCount=1
+[hyoga-fp] FreeWheelPlayer [dispatch] AdImpression {_tag: 'AdImpression', adId: '37204918'}
+[hyoga-fp] FreeWheelPlayer [ControlOps] pause: ad phase=Midroll, pausing current ad slot
+[hyoga-fp] FreeWheelPlayer [ControlOps] resume: ad phase=Midroll, resuming current ad slot
+[hyoga-fp] FreeWheelPlayer [dispatch] AdImpressionEnd {_tag: 'AdImpressionEnd', adId: '37204918'}
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotEnded: classId=MIDROLL, adCount=1
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotEnded: decision -> restoreAfterMidroll
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] restoreAfterMidroll: resuming content at 5.565313s
+[hyoga-fp] FreeWheelPlayer [PlaybackOps] playContent: seeking to 5.565313s, src=https://ott.dolby.com/OnDelKits/AC-4/Dolby_AC-4_Online_Delivery_Kit_1.5/Test_Signals/muxed_streams/MP4/Example/Audio_ID_720p_25fps_h264_2ch_64kbps_ac4.mp4
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: CURRENT -> "Midroll" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(0), overlaySlots: Array(2), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: NEXT -> "Content" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(0), overlaySlots: Array(2), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [dispatch] ContentVideoResumed {_tag: 'ContentVideoResumed'}
+[hyoga-fp] FreeWheelPlayer [PlaybackOps] onContentTimeUpdate: overlay triggered at t=9.54s (cue=10s)
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: CURRENT -> "Content" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(0), overlaySlots: Array(2), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: NEXT -> "Content" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(0), overlaySlots: Array(1), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotStarted: classId=OVERLAY, adCount=1
+[hyoga-fp] FreeWheelPlayer [dispatch] AdImpression {_tag: 'AdImpression', adId: '37204920'}
+[hyoga-fp] FreeWheelPlayer [PlaybackOps] onContentTimeUpdate: overlay triggered at t=19.63s (cue=20s)
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: CURRENT -> "Content" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(0), overlaySlots: Array(1), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: NEXT -> "Content" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(0), overlaySlots: Array(0), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotStarted: classId=OVERLAY, adCount=1
+[hyoga-fp] FreeWheelPlayer [dispatch] AdImpression {_tag: 'AdImpression', adId: '8807984'}
+[hyoga-fp] FreeWheelPlayer [dispatch] AdImpressionEnd {_tag: 'AdImpressionEnd', adId: '37204920'}
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotEnded: classId=OVERLAY, adCount=1
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotEnded: overlay ended, no action needed
+[hyoga-fp] FreeWheelPlayer [PlaybackOps] onContentEnded: content video ended, starting postroll chain
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] playPostroll: playing slot (1 remaining)
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: CURRENT -> "Content" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(0), overlaySlots: Array(0), postrollSlots: Array(1), …}
+[hyoga-fp] FreeWheelPlayer [ContextRunner] setState: NEXT -> "Postroll" {phase: {…}, prerollSlots: Array(0), midrollSlots: Array(0), overlaySlots: Array(0), postrollSlots: Array(0), …}
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotStarted: classId=POSTROLL, adCount=1
+[hyoga-fp] FreeWheelPlayer [dispatch] AdImpression {_tag: 'AdImpression', adId: '37204929'}
+[hyoga-fp] FreeWheelPlayer [dispatch] AdImpressionEnd {_tag: 'AdImpressionEnd', adId: '8807984'}
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotEnded: classId=OVERLAY, adCount=1
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotEnded: overlay ended, no action needed
+[hyoga-fp] FreeWheelPlayer [dispatch] AdImpressionEnd {_tag: 'AdImpressionEnd', adId: '37204929'}
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotEnded: classId=POSTROLL, adCount=1
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] onSlotEnded: decision -> playPostroll
+[hyoga-fp] FreeWheelPlayer [AdBreakOps] playPostroll: no postrolls remaining

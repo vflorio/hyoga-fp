@@ -1,0 +1,376 @@
+---
+
+# Prompt
+
+Sto lavorando su un player video HTML5 integrato con FreeWheel Ad Manager SDK.
+
+## Contesto del progetto
+
+L'applicazione renderizza:
+
+* un player video HTML5 principale
+* integrazione con FreeWheel SDK
+* richiesta pubblicitaria verso ad server configurato tramite variabili `.env`
+* rendering di:
+
+  * preroll
+  * midroll
+  * postroll
+  * pause ads
+  * overlay ads
+  * companion ads
+  * banner standalone
+* eventi FreeWheel esposti nel player
+* stato runtime visibile tramite console e/o context state
+
+Il flusso attuale è:
+
+1. caricamento configurazione da `.env`
+2. inizializzazione FreeWheel SDK
+3. richiesta ad server
+4. ricezione ad response
+5. costruzione ad breaks
+6. playback del contenuto
+7. esecuzione automatica dei vari ad break
+8. rendering creativo video/banner
+9. tracking impression/completion
+
+L'obiettivo NON è modificare il comportamento pubblicitario ma costruire un framework di validazione automatica runtime end-to-end.
+
+---
+
+# Obiettivo
+
+Progettare e implementare un sistema di validazione automatica che verifichi che ogni ad dichiarata dall'ad server venga realmente eseguita e visualizzata.
+
+Il sistema deve funzionare sia localmente sia in CI.
+
+---
+
+# Accesso consentito
+
+Hai pieno accesso a:
+
+* sorgente completo
+* configurazioni
+* file .env
+* browser automation
+* DevTools Protocol
+* rete
+* console logs
+* FreeWheel SDK integration layer
+
+Puoi creare nuovi moduli, refactor e aggiungere instrumentation.
+
+---
+
+# Richieste principali
+
+## 1. Runtime Ad Model
+
+Costruire un modello dati unificato che rappresenti:
+
+```ts
+AdPod
+AdBreak
+AdSlot
+Creative
+Companion
+TrackingEvent
+```
+
+Ogni oggetto deve avere:
+
+* id
+* tipo
+* durata
+* posizione
+* stato
+* timestamp
+* eventi ricevuti
+
+---
+
+## 2. Global Runtime Exposure
+
+Esporre nel browser un oggetto globale:
+
+```ts
+window.__AD_RUNTIME__
+```
+
+contenente:
+
+```ts
+{
+  adPods: [],
+  adBreaks: [],
+  creatives: [],
+  companions: [],
+  events: [],
+  diagnostics: {}
+}
+```
+
+in modo che test esterni possano leggerlo.
+
+---
+
+## 3. FreeWheel Instrumentation
+
+Intercettare tutti gli eventi disponibili del SDK.
+
+Per ogni evento salvare:
+
+```ts
+{
+  timestamp,
+  eventName,
+  slotId,
+  adId,
+  creativeId,
+  rawPayload
+}
+```
+
+Creare una timeline completa.
+
+---
+
+## 4. Network Correlation
+
+Intercettare tutte le richieste:
+
+* ad request
+* impression
+* quartiles
+* complete
+* click tracking
+
+Correlare ogni richiesta con:
+
+```ts
+adId
+creativeId
+slotId
+breakId
+```
+
+---
+
+## 5. Visual Validation
+
+Implementare verifiche runtime che confermino che la creatività sia realmente visibile.
+
+Per video ads:
+
+* elemento video presente
+* visibilità > 50%
+* playback iniziato
+* avanzamento tempo
+* completion
+
+Per banner:
+
+* DOM presente
+* dimensioni corrette
+* non hidden
+* non display:none
+* non opacity:0
+
+Per companion:
+
+* renderizzato nel container corretto
+* dimensioni coerenti
+
+---
+
+## 6. Ad Break Validation
+
+Verificare automaticamente:
+
+### preroll
+
+* eseguito prima del contenuto
+
+### midroll
+
+* eseguito al tempo corretto
+
+### postroll
+
+* eseguito dopo il contenuto
+
+### pause ad
+
+* eseguito solo durante pausa
+
+### overlay
+
+* eseguito sopra il contenuto
+
+---
+
+## 7. Ad Pod Validation
+
+Costruire un motore che confronti:
+
+Ad Response
+
+vs
+
+Runtime Effettivo
+
+Esempio:
+
+```json
+{
+  "expectedAds": 5,
+  "playedAds": 5
+}
+```
+
+evidenziando:
+
+* ad mancanti
+* ad duplicate
+* ad saltate
+* ad terminate prematuramente
+
+---
+
+## 8. Browser Automation
+
+Utilizzare il framework di test già presente (Playwright/Puppeteer se disponibile).
+
+Il test runner deve:
+
+1. aprire il player
+2. leggere `window.__AD_RUNTIME__`
+3. attendere il completamento della sessione
+4. costruire un report finale
+
+---
+
+## 9. Self Configuring Test Runner
+
+Il runner NON deve avere dati hardcoded.
+
+Deve:
+
+1. leggere runtime state
+2. capire quanti ad break esistono
+3. capire quanti slot esistono
+4. capire quali creatività sono attese
+5. costruire dinamicamente i test
+
+Esempio:
+
+```ts
+response => generateValidationPlan(response)
+```
+
+---
+
+## 10. Final Validation Report
+
+Generare report JSON:
+
+```json
+{
+  "sessionId": "",
+  "passed": true,
+  "expected": {},
+  "actual": {},
+  "errors": [],
+  "warnings": [],
+  "timeline": []
+}
+```
+
+e report HTML leggibile.
+
+---
+
+## 11. Failure Diagnostics
+
+Quando un test fallisce produrre automaticamente:
+
+* screenshot
+* DOM snapshot
+* network snapshot
+* runtime snapshot
+* FreeWheel event timeline
+
+---
+
+## 12. Coverage Matrix
+
+Produrre una matrice di copertura:
+
+| Scenario   | Covered |
+| ---------- | ------- |
+| Preroll    | ✓       |
+| Midroll    | ✓       |
+| Postroll   | ✓       |
+| Overlay    | ✓       |
+| Companion  | ✓       |
+| Pause Ad   | ✓       |
+| Tracking   | ✓       |
+| Visibility | ✓       |
+
+---
+
+# Output atteso
+
+1. Analizza il repository esistente.
+2. Individua i punti di integrazione FreeWheel.
+3. Disegna l'architettura completa.
+4. Elenca i file da creare/modificare.
+5. Proponi il modello dati.
+6. Implementa il framework.
+7. Genera i test automatici.
+8. Genera esempi di report.
+9. Evidenzia rischi tecnici.
+10. Fornisci codice production-ready e non pseudocodice.
+
+Vincoli:
+
+* TypeScript first.
+* Nessuna dipendenza superflua.
+* Architettura modulare.
+* Compatibile con CI/CD.
+* Estendibile ad altri ad server oltre FreeWheel.
+* Tutto il codice deve essere osservabile e testabile.
+
+---
+
+Un'aggiunta che farei (molto importante) è chiedere all'AI di costruire una vera e propria **"Ad Session State Machine"**. È il pezzo che normalmente manca nei test pubblicitari:
+
+```ts
+NOT_REQUESTED
+↓
+REQUESTED
+↓
+RESPONSE_RECEIVED
+↓
+SCHEDULED
+↓
+RENDERED
+↓
+VISIBLE
+↓
+STARTED
+↓
+Q1
+↓
+Q2
+↓
+Q3
+↓
+COMPLETE
+```
+
+e ogni transizione deve essere validata.
+
+In questo modo non controlli soltanto che l'ad sia comparsa, ma che l'intero ciclo di vita pubblicitario sia stato effettivamente eseguito correttamente. Questo approccio è molto vicino a ciò che utilizzano i team QA dei player video enterprise e delle piattaforme OTT.

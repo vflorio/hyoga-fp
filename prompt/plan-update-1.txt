@@ -1,0 +1,99 @@
+# FreeWheel Ad Validation Framework - Implementation Plan
+
+## Status: Phase 1-3 IMPLEMENTED ✓
+
+---
+
+## Architecture
+
+```
+packages/validation/     - Pure validation library (model, state machine, rules, report)
+packages/freewheel/      - Runtime collector hooks into existing SDK event system
+  src/runtime/           - AdRuntimeCollector (new)
+apps/demo/               - window.__AD_RUNTIME__ exposure (opt-in via env var)
+apps/e2e/                - Playwright E2E test suite
+```
+
+---
+
+## Phase 1: Runtime Ad Model & State Machine (DONE ✓)
+
+### packages/validation/
+- `src/model.ts` — Unified types: AdSession, AdPod, AdBreak, AdSlotRecord, Creative, Companion, TrackingEvent, TimelineEntry, NetworkRequest
+- `src/state-machine.ts` — Per-creative lifecycle FSM: NOT_REQUESTED → REQUESTED → RESPONSE_RECEIVED → SCHEDULED → RENDERED → VISIBLE → STARTED → Q1 → Q2 → Q3 → COMPLETE (with SKIPPED/ERROR terminals)
+- `src/state-machine.spec.ts` — 9 unit tests (all passing)
+- `src/rules.ts` — 9 validation rules: preroll-before-content, midroll-at-correct-time, postroll-after-content, overlay-during-content, pause-ad-during-pause, all-ads-played, no-duplicate-impressions, creatives-complete, tracking-events-fired
+- `src/network.ts` — FreeWheel URL parser, network correlation engine
+- `src/report.ts` — JSON + HTML report generation with coverage matrix
+- `src/index.ts` — Public API
+
+---
+
+## Phase 2: Runtime Instrumentation (DONE ✓)
+
+### packages/freewheel/src/runtime/
+- `collector.ts` — AdRuntimeCollector: subscribes to emit(SDKEvent) + emitStateChange, builds AdSession model in real-time
+- `index.ts` — Exports
+
+### apps/demo/
+- `src/env.ts` — Added optional VITE_ENABLE_AD_RUNTIME env var
+- `src/useFreeWheelPlayer.ts` — Wired collector into emit/emitStateChange, exposes window.__AD_RUNTIME__
+
+---
+
+## Phase 3: Browser Automation & E2E (DONE ✓)
+
+### apps/e2e/
+- `playwright.config.ts` — Configured for sequential tests, CI webServer, JSON+HTML reporters
+- `src/fixtures/adTest.ts` — Custom fixtures: adRuntime (waitForSession/getSession/waitForComplete), networkCapture
+- `src/visual/validation.ts` — validateVideoAd, validateBannerAd, validateCompanionAd
+- `src/diagnostics/capture.ts` — Screenshot, DOM, network, runtime snapshots on failure
+- `src/tests/ad-session.spec.ts` — Self-configuring tests: full session validation, preroll ordering, video visibility, midroll timing, error-free completion, overlay non-blocking
+
+---
+
+## Phase 4: CI Integration (DONE ✓)
+
+- `turbo.json` — Added `e2e` task
+- `apps/e2e/playwright.config.ts` — CI mode with webServer auto-start
+- `apps/e2e/.gitignore` — Excludes test-results/
+
+---
+
+## Running
+
+```bash
+# Unit tests
+pnpm --filter @hyoga-fp/validation test
+
+# Full build
+pnpm run build
+
+# E2E tests (with demo running on localhost:5173 + VITE_ENABLE_AD_RUNTIME=true)
+cd apps/e2e && npx playwright test
+
+# Or in CI mode (auto-starts demo server)
+CI=true pnpm --filter @hyoga-fp/e2e test
+```
+
+---
+
+## Decisions Made
+
+- validation package has NO dependency on freewheel (avoids circular dep)
+- freewheel depends on validation for types
+- Collector opt-in via env var (zero production impact)
+- Quartile skipping allowed in state machine (common with short ads)
+- Self-configuring tests derive all expectations from runtime state (no hardcoded ad IDs)
+- Playwright chosen over Puppeteer (better CI support, trace viewer)
+
+---
+
+## Next Steps / Enhancements
+
+- [ ] Add more unit tests for rules.ts and network.ts
+- [ ] Add mocked SDK mode for deterministic CI tests
+- [ ] Add companion ad visual validation test
+- [ ] Add pause-ad specific test
+- [ ] GitHub Actions workflow file
+- [ ] Report upload as CI artifact

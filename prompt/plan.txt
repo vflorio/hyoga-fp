@@ -1,0 +1,221 @@
+Read [](file:///data/dev/personal/hyoga-fp/prompt/prompt.txt#1-1), lines 1 to 100
+
+Read [](file:///data/dev/personal/hyoga-fp/prompt/logs.txt)
+
+Read memory [](file:///home/vflorio/.config/Code/User/workspaceStorage/9a18754b3051ffd347a5bf9d68a7e310/GitHub.copilot-chat/memory-tool/memories/repo/hyoga-fp.md)
+
+Read [](file:///data/dev/personal/hyoga-fp/prompt/prompt.txt#101-101), lines 101 to 200
+
+Read [](file:///data/dev/personal/hyoga-fp/prompt/prompt.txt#201-201), lines 201 to 350
+
+Read [](file:///data/dev/personal/hyoga-fp/prompt/prompt.txt#351-351), lines 351 to 377
+
+Now let me explore the existing codebase to understand the current architecture and identify integration points.  
+
+Explore FreeWheel package architecture
+
+Explore core and demo app
+
+Read memory
+
+Read memory [](file:///home/vflorio/.config/Code/User/workspaceStorage/9a18754b3051ffd347a5bf9d68a7e310/GitHub.copilot-chat/memory-tool/memories/repo/hyoga-fp.md)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/core/src/index.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/core/src/event-stream.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/apps/demo/src/main.tsx)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/core/src/logger.ts#1-1), lines 1 to 100
+
+Read [](file:///data/dev/personal/hyoga-fp/turbo.json)
+
+Read [](file:///data/dev/personal/hyoga-fp/apps/demo/src/Player.tsx#1-1), lines 1 to 100
+
+Read [](file:///data/dev/personal/hyoga-fp/apps/demo/src/useFreeWheelPlayer.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/apps/demo/src/env.ts#1-1), lines 1 to 50
+
+Read [](file:///data/dev/personal/hyoga-fp/package.json)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/freeWheel/freeWheelPlayer.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/freeWheel/model.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/contextRunner/state.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/contextRunner/transitions.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/contextRunner/coreHandlers.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/diagnostics/diagnostics.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/core/src/logger.ts#80-80), lines 80 to 112
+
+Read [](file:///data/dev/personal/hyoga-fp/apps/demo/src/env.ts#40-40), lines 40 to 80
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/core/vitest.config.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/apps/demo/package.json)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/core/package.json)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/core/src)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/core/src/format.ts)
+
+Read memory
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/contextRunner/ops/playback.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/contextRunner/ops/adBreaks.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/contextRunner/ops/request.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/contextRunner/ops/controls.ts)
+
+Read memory [](file:///home/vflorio/.config/Code/User/workspaceStorage/9a18754b3051ffd347a5bf9d68a7e310/GitHub.copilot-chat/memory-tool/memories/repo/hyoga-fp.md)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/package.json)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/contextRunner/index.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/index.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/diagnostics/domains/adLifecycle.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/diagnostics/domains/userInteractions.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/index.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/core/src/format.spec.ts#1-1), lines 1 to 50
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/diagnostics/domains/slotLifecycle.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/diagnostics/domains/infrastructure.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/contextRunner/contextRunner.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/freeWheel/freeWheel.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/contextRunner/index.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/freeWheel/index.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/diagnostics/domains/contentState.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/diagnostics/domains/playbackHealth.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/diagnostics/index.ts)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/freeWheel/freeWheelPlayer.ts#80-80), lines 80 to 100
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src)
+
+Read [](file:///data/dev/personal/hyoga-fp/packages/freewheel/src/contextRunner/state.spec.ts)
+
+Updated memory file [](file:///home/vflorio/.config/Code/User/workspaceStorage/9a18754b3051ffd347a5bf9d68a7e310/GitHub.copilot-chat/memory-tool/memories/repo/hyoga-fp.md)
+
+Read [](file:///home/vflorio/.config/Code/User/workspaceStorage/9a18754b3051ffd347a5bf9d68a7e310/GitHub.copilot-chat/chat-session-resources/476a4f93-f3b6-483f-b98b-5f6ae51ad079/toolu_bdrk_01Ck2ecuHTdYMkjR3dqFDzuM__vscode-1782317728265/content.txt)
+
+Now I have a comprehensive understanding of both the request and the existing architecture. Let me formulate the plan. 
+
+Created memory file [](file:///home/vflorio/.config/Code/User/workspaceStorage/9a18754b3051ffd347a5bf9d68a7e310/GitHub.copilot-chat/memory-tool/memories/NDc2YTRmOTMtZjNiNi00ODNmLWI5OGItNWY2YWU1MWFkMDc5/plan.md)
+
+Ecco il piano completo che ho elaborato analizzando la tua richiesta e il codebase esistente:
+
+---
+
+## Plan: FreeWheel Ad Validation Framework
+
+**TL;DR** — Costruire un sistema di validazione automatica end-to-end che verifica che ogni ad dichiarata dal server FreeWheel venga realmente eseguita e visualizzata. Architettura: 2 nuovi package (`packages/validation` per il modello/regole pure, `apps/e2e` per i test Playwright) + modifiche minimali a freewheel e demo.
+
+---
+
+### Phase 1: Runtime Ad Model & State Machine (`packages/validation`)
+
+1. Creare `packages/validation` (TypeScript, vitest, io-ts)
+2. Definire i tipi del modello unificato: `AdSession`, `AdPod`, `AdBreak`, `AdSlot`, `Creative`, `Companion`, `TrackingEvent` — ciascuno con id, tipo, durata, posizione, stato, timestamp, eventi ricevuti
+3. Implementare la **Ad Session State Machine** per-creative: `NOT_REQUESTED → REQUESTED → RESPONSE_RECEIVED → SCHEDULED → RENDERED → VISIBLE → STARTED → Q1 → Q2 → Q3 → COMPLETE` — con validatori di transizione (nessuno stato saltato, timestamp monotoni)
+4. Implementare il **Validation Rules Engine**: regole di ordinamento ad break, confronto ad pod (expected vs actual), rilevamento di ad mancanti/duplicate/saltate/terminate prematuramente
+5. Implementare il modello di **Network Correlation**: tipi per ad request/impression/quartili/complete/click, correlazione verso `adId/creativeId/slotId/breakId`
+6. Implementare **Report Generation**: schema JSON + renderer HTML standalone + coverage matrix
+
+---
+
+### Phase 2: Runtime Instrumentation (freewheel + demo)
+
+7. Aggiungere un **AdRuntimeCollector** in `packages/freewheel/src/runtime/` — si aggancia al callback `emit(SDKEvent)` esistente e alle state changes, costruisce il modello `AdSession` in tempo reale
+8. Esporre `window.__AD_RUNTIME__` in demo — opt-in via `VITE_ENABLE_AD_RUNTIME=true`, oggetto live con `{ adPods, adBreaks, creatives, companions, events, diagnostics, timeline, sessionState }`
+9. Aggiungere **timeline recording** al collector — ogni evento SDK → entry timestampata
+
+---
+
+### Phase 3: Browser Automation & E2E (`apps/e2e`)
+
+10. Creare `apps/e2e` con Playwright
+11. **Visual Validation**: video (elemento presente, visibility >50%, playback avviato, tempo che avanza), banner (DOM, dimensioni, non hidden), companion (container corretto)
+12. **Network Interception** via `page.route()`: cattura URL FreeWheel → estrazione adId/creativeId/tipo evento → alimenta il modello di correlazione
+13. **Self-Configuring Test Runner**: legge `window.__AD_RUNTIME__` dopo la risposta, genera dinamicamente il piano di validazione (zero dati hardcoded)
+14. **Ad Break Validation**: preroll prima del contenuto, midroll al tempo corretto, postroll dopo fine, overlay durante, pause ad solo in pausa
+15. **Ad Pod Validation**: expected vs played, flag discrepanze
+16. **Failure Diagnostics**: su fallimento → screenshot, DOM snapshot, network log, runtime snapshot, timeline eventi
+
+---
+
+### Phase 4: CI Integration & Reporting
+
+17. Playwright config CI (headless, retries, timeout)
+18. Task turbo `e2e` (dipende da `build`)
+19. Report finale JSON + HTML
+20. Coverage matrix
+
+---
+
+### Relevant Files
+
+**Da modificare:**
+- index.ts — hook collector nel flusso `emit`
+- freeWheelPlayer.ts — esporre creazione collector
+- useFreeWheelPlayer.ts — wire `window.__AD_RUNTIME__`
+- env.ts — aggiungere env var
+- turbo.json, pnpm-workspace.yaml
+
+**Da creare:**
+- `packages/validation/src/model.ts`, `state-machine.ts`, `rules/`, `network.ts`, `report.ts`, `coverage.ts`
+- `packages/freewheel/src/runtime/collector.ts`, `exposure.ts`
+- `apps/e2e/playwright.config.ts`, `src/fixtures/`, `src/visual/`, `src/tests/`, `src/diagnostics/`
+
+---
+
+### Verification
+
+1. Unit test sul modello/state machine/regole via vitest
+2. Integration test locale: demo app → e2e → report con `passed: true`
+3. CI headless: produce report JSON verificabile
+4. Verifica manuale: HTML report allineato al comportamento in logs.txt
+5. Test negativi: simulare ad mancante → framework la rileva
+
+---
+
+### Decisions
+
+- **`packages/validation` separato**: riusabile senza browser, estendibile ad altri ad server
+- **Playwright** (non Puppeteer): migliore supporto CI, assertions built-in, trace viewer
+- **Opt-in instrumentation**: `window.__AD_RUNTIME__` solo con env var (zero impatto produzione)
+- **fp-ts consistency**: il nuovo codice segue i pattern esistenti (IO, Task, Option, io-ts)
+- **Riuso diagnostics**: i 45+ codec eventi esistenti alimentano il collector tramite il callback `emit` già presente
+
+---
+
+### Considerazioni Aperte
+
+1. **SDK in CI**: hit reale ad server (realistico ma flaky) vs mock (veloce/deterministico)? → **Raccomandazione**: entrambi i modi — mock per PR, reale per nightly.
+2. **Viewport per visual validation**: Playwright default 1280x720 dovrebbe bastare, ma potrebbe servire configurazione esplicita per companion ads.
+3. **Report persistence**: upload come CI artifact (non committati nel repo).
+
+---
+
+Vuoi che approfondisca qualche fase, modifichi l'approccio su qualche punto, o possiamo procedere con l'implementazione?
