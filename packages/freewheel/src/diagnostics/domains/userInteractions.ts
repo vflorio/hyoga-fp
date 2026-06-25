@@ -13,50 +13,50 @@ export const withUserInteractions = (deps: DiagnosticDeps): DiagnosticsDomainHan
       const [url, type] = extractUrlType(rawEvent);
       return url || type.includes("defaultClick")
         ? {
-            _tag: "AdClick",
+            _tag: "FreeWheel/AdClick",
             adId: extractAdId(rawEvent),
             url: url.length > 0 ? url : "unknown", // Alcuni eventi di click non hanno URL, in questo caso logghiamo "unknown" invece di una stringa vuota
           }
         : null;
     }),
     onAdMute: dispatchSdkEvent(deps, "AD_MUTE", (rawEvent) => ({
-      _tag: "AdMute",
+      _tag: "FreeWheel/AdMute",
       adId: extractAdId(rawEvent),
     })),
     onAdUnmute: dispatchSdkEvent(deps, "AD_UNMUTE", (rawEvent) => ({
-      _tag: "AdUnmute",
+      _tag: "FreeWheel/AdUnmute",
       adId: extractAdId(rawEvent),
     })),
     onAdPause: dispatchSdkEvent(deps, "AD_PAUSE", (rawEvent) => ({
-      _tag: "AdPause",
+      _tag: "FreeWheel/AdPause",
       adId: extractAdId(rawEvent),
     })),
     onAdResume: dispatchSdkEvent(deps, "AD_RESUME", (rawEvent) => ({
-      _tag: "AdResume",
+      _tag: "FreeWheel/AdResume",
       adId: extractAdId(rawEvent),
     })),
     onAdRewind: dispatchSdkEvent(deps, "AD_REWIND", (rawEvent) => ({
-      _tag: "AdRewind",
+      _tag: "FreeWheel/AdRewind",
       adId: extractAdId(rawEvent),
     })),
     onAdCollapse: dispatchSdkEvent(deps, "AD_COLLAPSE", (rawEvent) => ({
-      _tag: "AdCollapse",
+      _tag: "FreeWheel/AdCollapse",
       adId: extractAdId(rawEvent),
     })),
     onAdExpand: dispatchSdkEvent(deps, "AD_EXPAND", (rawEvent) => ({
-      _tag: "AdExpand",
+      _tag: "FreeWheel/AdExpand",
       adId: extractAdId(rawEvent),
     })),
     onAdAcceptInvitation: dispatchSdkEvent(deps, "AD_ACCEPT_INVITATION", (rawEvent) => ({
-      _tag: "AdAcceptInvitation",
+      _tag: "FreeWheel/AdAcceptInvitation",
       adId: extractAdId(rawEvent),
     })),
     onAdClose: dispatchSdkEvent(deps, "AD_CLOSE", (rawEvent) => ({
-      _tag: "AdClose",
+      _tag: "FreeWheel/AdClose",
       adId: extractAdId(rawEvent),
     })),
     onAdMinimize: dispatchSdkEvent(deps, "AD_MINIMIZE", (rawEvent) => ({
-      _tag: "AdMinimize",
+      _tag: "FreeWheel/AdMinimize",
       adId: extractAdId(rawEvent),
     })),
     onAdVolumeChange: dispatchSdkEvent(deps, "AD_VOLUME_CHANGE", (rawEvent) => {
@@ -64,7 +64,7 @@ export const withUserInteractions = (deps: DiagnosticDeps): DiagnosticsDomainHan
       const volume = extractVolume(rawEvent);
       return Number.isFinite(volume)
         ? {
-            _tag: "AdVolumeChange",
+            _tag: "FreeWheel/AdVolumeChange",
             adId: extractAdId(rawEvent),
             volume,
           }
@@ -76,7 +76,7 @@ export const withUserInteractions = (deps: DiagnosticDeps): DiagnosticsDomainHan
       const skippable = extractSkippable(rawEvent);
       return skippable !== null
         ? {
-            _tag: "AdSkippableStateChanged",
+            _tag: "FreeWheel/AdSkippableStateChanged",
             adId: extractAdId(rawEvent),
             skippable,
           }

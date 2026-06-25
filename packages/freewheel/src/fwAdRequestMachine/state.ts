@@ -4,25 +4,15 @@ import * as IORef from "fp-ts/IORef";
 import type { Endomorphism } from "fp-ts/lib/Endomorphism";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
+import * as RA from "fp-ts/ReadonlyArray";
 import * as T from "fp-ts/Task";
 import * as t from "io-ts";
 import { match } from "ts-pattern";
 import { FwAdSlot, type FwSdk } from "..";
 
-// Phase
-
-export type MachinePhase =
-  | { readonly _tag: "Init" } // player created, no request submitted yet
-  | { readonly _tag: "Preroll" } // preroll slot is playing
-  | { readonly _tag: "Content" } // content video is playing (or paused waiting resume)
-  | { readonly _tag: "Midroll" } // content paused, midroll slot playing
-  | { readonly _tag: "PauseMidroll" } // user paused, pause-midroll slot playing
-  | { readonly _tag: "Postroll" } // postroll slot is playing
-  | { readonly _tag: "Done" }; // all done, context disposed
-
 export const setPhase =
-  (phase: MachinePhase) =>
-  (state: MachineState): MachineState => ({ ...state, phase });
+  (phase: Phase) =>
+  (state: State): State => ({ ...state, phase });
 
 export const Init = t.type({ _tag: t.literal("Init") });
 export const Preroll = t.type({ _tag: t.literal("Preroll") });
@@ -39,8 +29,8 @@ export type Phase = t.TypeOf<typeof Phase>;
 
 // Runs "effect" only when the current phase tag is in "allowedTags", otherwise no-ops
 export const whenPhaseIO =
-  (getState: IO.IO<MachineState>) =>
-  (allowedTags: ReadonlyArray<MachinePhase["_tag"]>) =>
+  (getState: IO.IO<State>) =>
+  (allowedTags: ReadonlyArray<Phase["_tag"]>) =>
   (effect: IO.IO<void>): IO.IO<void> =>
     pipe(
       getState,
@@ -49,8 +39,8 @@ export const whenPhaseIO =
 
 // Task variant of "whenPhase"
 export const whenPhaseT =
-  (getState: IO.IO<MachineState>) =>
-  (allowedTags: ReadonlyArray<MachinePhase["_tag"]>) =>
+  (getState: IO.IO<State>) =>
+  (allowedTags: ReadonlyArray<Phase["_tag"]>) =>
   (effect: T.Task<void>): T.Task<void> =>
     pipe(
       T.fromIO(getState),
@@ -59,8 +49,8 @@ export const whenPhaseT =
 
 // State
 
-export interface MachineState {
-  readonly phase: MachinePhase;
+export interface State {
+  readonly phase: Phase;
 
   readonly prerolls: ReadonlyArray<FwAdSlot.AdSlot>;
   readonly midrolls: ReadonlyArray<FwAdSlot.AdSlot>;
@@ -73,7 +63,7 @@ export interface MachineState {
   readonly contentPausedOn: number; // resume position for mid/pause-midroll
 }
 
-export const createInitialState = (contentSrc: string): MachineState => ({
+export const createInitialState = (contentSrc: string): State => ({
   // Machine
   phase: { _tag: "Init" },
 
@@ -100,7 +90,7 @@ export const createInitialState = (contentSrc: string): MachineState => ({
 // Usata per determinare in quale parte dello stato va inserito lo slot
 export const getStateSlotForSlotClassId =
   (sdk: FwSdk.SDK) =>
-  (classId: string): keyof MachineState | "notSupported" =>
+  (classId: string): keyof State | "notSupported" =>
     match(classId)
       .with(sdk.TIME_POSITION_CLASS_PREROLL, () => "prerolls" as const)
       .with(sdk.TIME_POSITION_CLASS_MIDROLL, () => "midrolls" as const)
@@ -110,31 +100,27 @@ export const getStateSlotForSlotClassId =
       .otherwise(() => "notSupported" as const);
 
 interface IMachineStateController {
-  readonly setState: (f: Endomorphism<MachineState>) => IO.IO<void>;
-  readonly getState: IO.IO<MachineState>;
+  readonly setState: (f: Endomorphism<State>) => IO.IO<void>;
+  readonly getState: IO.IO<State>;
 }
 
 export class Stateful implements IMachineStateController {
   constructor(
     private readonly logger: Logger,
-    private readonly state: MachineState,
-    private readonly emitStateChange: (state: MachineState) => void,
+    private readonly state: State,
+    private readonly emitStateChange: (state: State) => void,
   ) {}
 
-  stateRef = IORef.newIORef<MachineState>(this.state)();
+  stateRef = IORef.newIORef<State>(this.state)();
 
-  private logStateSlots = (state: MachineState) =>
+  private logStateSlots = (state: State) =>
     FwAdSlot.showAll(
-      FwAdSlot.sortByTimePosition([
-        ...state.prerolls,
-        ...state.midrolls,
-        ...state.overlays,
-        ...state.postrolls,
-        ...state.pauseMidrolls,
-      ]),
+      FwAdSlot.sortByTimePosition(
+        [state.prerolls, state.midrolls, state.overlays, state.postrolls, state.pauseMidrolls].flat(),
+      ),
     );
 
-  public readonly setState = (f: Endomorphism<MachineState>): IO.IO<void> =>
+  public readonly setState = (f: Endomorphism<State>): IO.IO<void> =>
     pipe(
       this.stateRef.read,
       IO.tap((state) => this.logger.debug(`[Stateful] setState: CURRENT -> "${state.phase._tag}"`, state)),
@@ -145,5 +131,22 @@ export class Stateful implements IMachineStateController {
       IO.tap((newState) => () => this.emitStateChange(newState)),
     );
 
-  public readonly getState: IO.IO<MachineState> = this.stateRef.read;
+  public readonly getState: IO.IO<State> = this.stateRef.read;
 }
+
+// FIUXME Utilities
+
+export const hasSlots = (state: State) =>
+  [
+    state.overlays.length,
+    state.midrolls.length,
+    state.prerolls.length,
+    state.postrolls.length,
+    state.pauseMidrolls.length,
+  ].reduce((prev, current) => prev + current, 0) === 0;
+
+export const getFirstPlayableOverlay = (state: State) => (time: number) =>
+  pipe(state.overlays, RA.findFirst(FwAdSlot.canPlayAt(time)));
+
+export const getFirstPlayableMidroll = (state: State) => (time: number) =>
+  pipe(state.midrolls, RA.findFirst(FwAdSlot.canPlayAt(time)));

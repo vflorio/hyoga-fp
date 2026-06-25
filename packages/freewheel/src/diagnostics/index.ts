@@ -25,7 +25,8 @@ export const dispatchSdkEvent =
             IO.flatMap(
               () => () =>
                 deps.emit({
-                  _tag: "ValidationError",
+                  // FIXME cambiare dominio evento
+                  _tag: "FreeWheel/ValidationError",
                   eventName,
                   rawPayload: raw,
                   reason: "Unexpected payload shape",

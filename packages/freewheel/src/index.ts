@@ -4,7 +4,7 @@ export * as Diagnostics from "./diagnostics";
 export * as FwAdContext from "./fwAdContext";
 export * as FwAdManager from "./fwAdManager";
 export * as FwAdRequest from "./fwAdRequest";
-export * as FwAdRequestPlayer from "./fwAdRequestMachine";
+export * as FwAdRequestMachine from "./fwAdRequestMachine";
 export * as FwAdRequestPlayerAdapter from "./fwAdRequestPlayerAdapter";
 export * as FwAdSlot from "./fwAdSlot";
 export * as FwSdk from "./fwSdk";

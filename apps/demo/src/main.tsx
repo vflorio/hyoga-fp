@@ -1,4 +1,5 @@
 import { CssBaseline, createTheme, ThemeProvider } from "@mui/material";
+import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Player } from "./Player";
 

@@ -30,7 +30,7 @@ export const configure =
     return adManager.newContext();
   };
 
-export const createAndConfigure =
+export const createWithConfig =
   (SDK: FwSdk.SDK) =>
   (networkId: number, serverURL: string): IO.IO<FwAdContext.AdContext> =>
     configure(networkId, serverURL)(create(SDK));

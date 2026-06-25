@@ -8,6 +8,8 @@ import * as RNEA from "fp-ts/ReadonlyNonEmptyArray";
 import type * as RR from "fp-ts/ReadonlyRecord";
 import * as S from "fp-ts/string";
 
+export * from "./match";
+
 export interface AdSlot {
   getTimePositionClass(): string;
   getTimePosition(): number;
@@ -16,6 +18,11 @@ export interface AdSlot {
   pause(): void;
   resume(): void;
 }
+
+export const canPlayAt =
+  (time: number, threshold = 0.5) =>
+  (slot: AdSlot) =>
+    Math.abs(slot.getTimePosition() - time) < threshold;
 
 // -------------------------------------------------------------------------------------
 // Eq
@@ -48,7 +55,7 @@ export const sortByTimePosition: (slots: ReadonlyArray<AdSlot>) => ReadonlyArray
 // Show
 // -------------------------------------------------------------------------------------
 
-export const show = (slot: AdSlot): string => `[${slot.getTimePositionClass()} @ ${slot.getTimePosition()}s]`;
+export const show = (slot: AdSlot): string => `[${slot.getTimePositionClass()}@${slot.getTimePosition()}s]`;
 
 export const showAll = (slots: ReadonlyArray<AdSlot>): string => pipe(slots, RA.map(show)).join(", ");
 

@@ -6,10 +6,10 @@ export const withContentState = (deps: DiagnosticDeps): DiagnosticsDomainHandler
 
   const adapter = {
     onContentVideoPaused: dispatchSdkEvent(deps, "CONTENT_VIDEO_PAUSED", () => ({
-      _tag: "ContentVideoPaused",
+      _tag: "FreeWheel/ContentVideoPaused",
     })),
     onContentVideoResumed: dispatchSdkEvent(deps, "CONTENT_VIDEO_RESUMED", () => ({
-      _tag: "ContentVideoResumed",
+      _tag: "FreeWheel/ContentVideoResumed",
     })),
   };
 

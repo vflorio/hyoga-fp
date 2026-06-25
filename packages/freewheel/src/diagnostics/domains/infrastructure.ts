@@ -6,22 +6,22 @@ export const withInfrastructure = (deps: DiagnosticDeps): DiagnosticsDomainHandl
 
   const adapter = {
     onRequestInitiated: dispatchSdkEvent(deps, "REQUEST_INITIATED", () => ({
-      _tag: "RequestInitiated",
+      _tag: "FreeWheel/RequestInitiated",
     })),
     onResellerNoAd: dispatchSdkEvent(deps, "RESELLER_NO_AD", (rawEvent) => ({
-      _tag: "ResellerNoAd",
+      _tag: "FreeWheel/ResellerNoAd",
       adId: extractAdId(rawEvent),
     })),
     onExtensionLoaded: dispatchSdkEvent(deps, "EXTENSION_LOADED", (rawEvent) => ({
-      _tag: "ExtensionLoaded",
+      _tag: "FreeWheel/ExtensionLoaded",
       moduleType: typeof (rawEvent as any)?.moduleType === "string" ? (rawEvent as any).moduleType : "unknown",
       customId: typeof (rawEvent as any)?.customId === "string" ? (rawEvent as any).customId : "unknown",
     })),
     onVideoDisplayBaseChanged: dispatchSdkEvent(deps, "VIDEO_DISPLAY_BASE_CHANGED", () => ({
-      _tag: "VideoDisplayBaseChanged",
+      _tag: "FreeWheel/VideoDisplayBaseChanged",
     })),
     onAdError: dispatchSdkEvent(deps, "ERROR", (rawEvent) => ({
-      _tag: "AdError",
+      _tag: "FreeWheel/AdError",
       errorCode: (rawEvent as any)?.errorCode ?? "unknown",
       errorInfo: (rawEvent as any)?.errorInfo ?? "unknown",
       errorModule: (rawEvent as any)?.errorModule ?? "unknown",

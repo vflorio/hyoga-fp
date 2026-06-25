@@ -6,42 +6,42 @@ export const withAdLifecycle = (deps: DiagnosticDeps): DiagnosticsDomainHandler 
 
   const adapter = {
     onAdInitiated: dispatchSdkEvent(deps, "AD_INITIATED", (rawEvent) => ({
-      _tag: "AdInitiated",
+      _tag: "FreeWheel/AdInitiated",
       adId: extractAdId(rawEvent),
     })),
     onAdImpression: dispatchSdkEvent(deps, "AD_IMPRESSION", (rawEvent) => ({
-      _tag: "AdImpression",
+      _tag: "FreeWheel/AdImpression",
       adId: extractAdId(rawEvent),
     })),
     onAdImpressionEnd: dispatchSdkEvent(deps, "AD_IMPRESSION_END", (rawEvent) => ({
-      _tag: "AdImpressionEnd",
+      _tag: "FreeWheel/AdImpressionEnd",
       adId: extractAdId(rawEvent),
     })),
     onAdFirstQuartile: dispatchSdkEvent(deps, "AD_FIRST_QUARTILE", (rawEvent) => ({
-      _tag: "AdFirstQuartile",
+      _tag: "FreeWheel/AdFirstQuartile",
       adId: extractAdId(rawEvent),
     })),
     onAdMidpoint: dispatchSdkEvent(deps, "AD_MIDPOINT", (rawEvent) => ({
-      _tag: "AdMidpoint",
+      _tag: "FreeWheel/AdMidpoint",
       adId: extractAdId(rawEvent),
     })),
     onAdThirdQuartile: dispatchSdkEvent(deps, "AD_THIRD_QUARTILE", (rawEvent) => ({
-      _tag: "AdThirdQuartile",
+      _tag: "FreeWheel/AdThirdQuartile",
       adId: extractAdId(rawEvent),
     })),
     onAdComplete: dispatchSdkEvent(deps, "AD_COMPLETE", (rawEvent) => ({
-      _tag: "AdComplete",
+      _tag: "FreeWheel/AdComplete",
       adId: extractAdId(rawEvent),
     })),
     onAdSkipped: dispatchSdkEvent(deps, "AD_SKIPPED", (rawEvent) => ({
-      _tag: "AdSkipped",
+      _tag: "FreeWheel/AdSkipped",
       adId: extractAdId(rawEvent),
     })),
     onAdProgress: dispatchSdkEvent(deps, "AD_PROGRESS", (rawEvent) => {
       const time = typeof (rawEvent as any)?.playheadTime === "number" ? (rawEvent as any).playheadTime : NaN;
       return Number.isFinite(time)
         ? {
-            _tag: "AdProgress",
+            _tag: "FreeWheel/AdProgress",
             adId: extractAdId(rawEvent),
             time,
           }

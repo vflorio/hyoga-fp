@@ -97,6 +97,7 @@ export interface SDK
     ParameterLevels,
     ParameterKeys,
     VideoAssetConstants {
+  readonly version: string;
   readonly AdManager: new () => {
     setNetwork(networkId: number): void;
     setServer(url: string): void;

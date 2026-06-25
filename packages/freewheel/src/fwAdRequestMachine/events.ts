@@ -22,7 +22,7 @@ export type CoreEvent = t.TypeOf<typeof CoreEvent>;
 
 // Handlers
 
-export const registerHandlers =
+export const registerCoreHandlers =
   (adContext: FwAdContext.AdContext, SDK: FwSdk.SDK, handlers: CoreHandlers): IO.IO<void> =>
   () => {
     adContext.addEventListener(SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST, handlers.onContentPauseRequest);
@@ -31,7 +31,7 @@ export const registerHandlers =
     adContext.addEventListener(SDK.EVENT_SLOT_ENDED, handlers.onSlotEnded);
   };
 
-export const removeHandlers =
+export const removeCoreHandlers =
   (adContext: FwAdContext.AdContext, SDK: FwSdk.SDK, handlers: CoreHandlers): IO.IO<void> =>
   () => {
     adContext.removeEventListener(SDK.EVENT_CONTENT_VIDEO_PAUSE_REQUEST, handlers.onContentPauseRequest);

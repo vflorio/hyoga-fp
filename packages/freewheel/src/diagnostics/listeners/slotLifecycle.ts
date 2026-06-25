@@ -20,7 +20,7 @@ export const withSlotLifecycle = (deps: DiagnosticDeps): DiagnosticsDomainHandle
       const slot = extractSlot(rawEvent);
       return slot
         ? {
-            _tag: "SlotImpression",
+            _tag: "FreeWheel/SlotImpression",
             ...slot,
           }
         : null;
@@ -29,7 +29,7 @@ export const withSlotLifecycle = (deps: DiagnosticDeps): DiagnosticsDomainHandle
       const slot = extractSlot(rawEvent);
       return slot
         ? {
-            _tag: "SlotEnd",
+            _tag: "FreeWheel/SlotEnd",
             ...slot,
           }
         : null;

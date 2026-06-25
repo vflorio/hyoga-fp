@@ -17,7 +17,7 @@ export const setupTechnicalDefaults =
 // Business setup
 // -------------------------------------------------------------------------------------
 
-export const setupBusinessDefaults =
+export const setupBusinessAdContext =
   (deps: AdRequestDeps) =>
   (config: Config): IO.IO<void> =>
   () => {

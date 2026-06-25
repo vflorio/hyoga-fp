@@ -1,15 +1,20 @@
 import { createLogger, EventStream, type LogLevel } from "@hyoga-fp/core";
-import * as FreeWheel from "@hyoga-fp/freewheel";
+import {
+  type Config,
+  FwAdManager,
+  FwAdRequest,
+  FwAdRequestMachine,
+  type FwAdRequestPlayerAdapter,
+  type FwSdk,
+} from "@hyoga-fp/freewheel";
 import * as IO from "fp-ts/IO";
-import { pipe } from "fp-ts/lib/function";
+import { constVoid, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { config } from "./env";
 
-const createVideoAdapterFrom = (
-  videoEl: HTMLVideoElement,
-): FreeWheel.FwAdRequestPlayerAdapter.FwAdRequestPlayerAdapter => ({
+const createVideoAdapterFrom = (videoEl: HTMLVideoElement): FwAdRequestPlayerAdapter.Adapter => ({
   play: () => {
     videoEl.play();
   },
@@ -27,7 +32,7 @@ const createVideoAdapterFrom = (
   off: (event, handler) => () => videoEl.removeEventListener(event, handler),
 });
 
-const adContextConfig: FreeWheel.Config.Config = {
+const adContextConfig: Config.Config = {
   serverURL: config.serverURL,
   profileId: config.profileId,
   videoAssetId: config.videoAssetId,
@@ -49,28 +54,26 @@ const adContextConfig: FreeWheel.Config.Config = {
 };
 
 export const useFwAdRequestMachine = () => {
-  const SDK = (window as any).tv.freewheel.SDK as FreeWheel.FwSdk.SDK;
+  const SDK = (window as any).tv.SDK as FwSdk.SDK;
 
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
   const videoRef = useCallback((node: HTMLVideoElement | null) => setVideoElement(node), []);
 
   const logger = useRef(createLogger("useFwAdRequestMachine", config.logLevel satisfies LogLevel));
 
-  const [machineState, setMachineState] = useState<FreeWheel.FwAdRequestPlayer.MachineState | null>(null);
+  const [machineState, setMachineState] = useState<FwAdRequestMachine.State | null>(null);
 
   // Il lifecycle dell'EventStream è gestito questo hook
-  const stream = useMemo(() => new EventStream<FreeWheel.FwSdk.Event>("freewheel-events"), []);
+  const stream = useMemo(() => new EventStream<FwSdk.Event>("machine-events"), []);
+
   useEffect(() => () => stream.close(), [stream]);
 
-  const machine = useMemo<O.Option<FreeWheel.FwAdRequestPlayer.FwAdRequestMachineInstance>>(() => {
+  const machine = useMemo<O.Option<FwAdRequestMachine.Instance>>(() => {
     if (!videoElement) return O.none;
 
-    const createAdContext = FreeWheel.FwAdManager.createAndConfigure(SDK)(
-      adContextConfig.networkId,
-      adContextConfig.serverURL,
-    );
+    const createAdContext = FwAdManager.createWithConfig(SDK)(adContextConfig.networkId, adContextConfig.serverURL);
 
-    const emit = (event: FreeWheel.FwSdk.Event) => {
+    const emit = (event: any) => {
       if (stream.closed) {
         logger.current.error("[useFwAdRequestMachine] EventStream is closed, cannot emit event:", event)();
         return;
@@ -80,14 +83,15 @@ export const useFwAdRequestMachine = () => {
 
     const adContext = createAdContext();
 
-    const instance = new FreeWheel.FwAdRequestPlayer.FwAdRequestMachineInstance({
+    const instance = new FwAdRequestMachine.Instance({
       SDK,
       adContext,
-      logger: createLogger("useFwAdRequestMachine.FwAdRequestMachineInstance", config.logLevel satisfies LogLevel),
-      videoAdapter: createVideoAdapterFrom(videoElement),
-      setupBusinessAdContext: FreeWheel.FwAdRequest.Setup.setupBusinessDefaults({ SDK, adContext })(adContextConfig),
+      logger: createLogger("FwAdRequestMachineInstance", config.logLevel satisfies LogLevel),
+      getVideoAdapter: () => createVideoAdapterFrom(videoElement),
+      setupBusinessAdContext: FwAdRequest.setupBusinessAdContext({ SDK, adContext })(adContextConfig),
       emitStateChange: setMachineState,
       emit,
+      emitIO: IO.of(emit),
     });
 
     // WIP
@@ -116,7 +120,7 @@ export const useFwAdRequestMachine = () => {
     return pipe(
       machine,
       O.match(
-        () => IO.of(undefined),
+        () => constVoid,
         (instance) => instance.earlyDispose,
       ),
       IO.flatMap(() => logger.current.info("[useFwAdRequestMachine] earlyDispose (reason: useEffect unmount)")),

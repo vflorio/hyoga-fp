@@ -6,19 +6,19 @@ export const withPlaybackHealth = (deps: DiagnosticDeps): DiagnosticsDomainHandl
 
   const adapter = {
     onAdAutoPlayBlocked: dispatchSdkEvent(deps, "AD_AUTO_PLAY_BLOCKED", (rawEvent) => ({
-      _tag: "AdAutoPlayBlocked",
+      _tag: "FreeWheel/AdAutoPlayBlocked",
       adId: extractAdId(rawEvent),
     })),
     onAdBufferingStart: dispatchSdkEvent(deps, "AD_BUFFERING_START", (rawEvent) => ({
-      _tag: "AdBufferingStart",
+      _tag: "FreeWheel/AdBufferingStart",
       adId: extractAdId(rawEvent),
     })),
     onAdBufferingEnd: dispatchSdkEvent(deps, "AD_BUFFERING_END", (rawEvent) => ({
-      _tag: "AdBufferingEnd",
+      _tag: "FreeWheel/AdBufferingEnd",
       adId: extractAdId(rawEvent),
     })),
     onAdMeasurement: dispatchSdkEvent(deps, "AD_MEASUREMENT", (rawEvent) => ({
-      _tag: "AdMeasurement",
+      _tag: "FreeWheel/AdMeasurement",
       adId: extractAdId(rawEvent),
       eventId: typeof (rawEvent as any)?.concreteEventId === "string" ? (rawEvent as any).concreteEventId : "unknown",
     })),

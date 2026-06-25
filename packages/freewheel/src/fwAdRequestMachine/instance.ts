@@ -1,36 +1,15 @@
 import * as IO from "fp-ts/IO";
-import { constVoid, pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 import * as T from "fp-ts/Task";
 import { FwAdRequest, type FwAdSlot } from "..";
 import { createDiagnostics } from "../diagnostics/diagnostics";
 import type { FwAdRequestMachine, FwAdRequestMachineDeps } from ".";
-import * as ContentController from "./controllers/content";
-import * as SlotController from "./controllers/slot";
-import * as Effects from "./effects";
-import type * as MediaEvents from "./events";
 import * as Phase from "./phases";
-import { createInitialState, type MachineState, Stateful, setPhase, whenPhaseIO } from "./state";
+import { createInitialState, type State, Stateful, setPhase, whenPhaseIO } from "./state";
+import * as Transitions from "./transitions";
 
-export class FwAdRequestMachineInstance implements FwAdRequestMachine {
-  state: MachineState = createInitialState(this.deps.getVideoAdapter().getSrc());
-
-  onSlotEndedEffects = {
-    onPreroll: Effects.playPreroll(this.deps),
-    onPostroll: Effects.playPostroll(this.deps),
-    onMidroll: Effects.restoreAfterMidroll(this.deps),
-    onPauseMidroll: Effects.restoreAfterPauseMidroll(this.deps),
-    onOverlay: constVoid, // overlay non richiede azioni particolari, il contenuto continua a girare sotto
-  };
-
-  // Questi rimangono registrati dalla fase di "Init" fino alla "Done"
-  mediaEventListeners: MediaEvents.CoreHandlers = {
-    // Content
-    onContentPauseRequest: ContentController.onContentPauseRequest(this.deps)(this),
-    onContentResumeRequest: ContentController.onContentResumeRequest(this.deps)(this),
-    // Slot
-    onSlotStarted: SlotController.onSlotStarted(this.deps),
-    onSlotEnded: SlotController.onSlotEnded(this.deps)(this.onSlotEndedEffects),
-  };
+export class Instance implements FwAdRequestMachine {
+  state: State = createInitialState(this.deps.getVideoAdapter().getSrc());
 
   stateful = new Stateful(
     // Dipendenze
@@ -42,23 +21,26 @@ export class FwAdRequestMachineInstance implements FwAdRequestMachine {
 
   diagnostics = createDiagnostics(this.deps);
 
-  constructor(readonly deps: FwAdRequestMachineDeps) {}
-
-  // Private API
-
-  private readonly setupAdContext: IO.IO<void> = pipe(
-    this.deps.logger.info("[MachineInstance] configureAdContext: configuring AD context"),
-    IO.flatMap(() => FwAdRequest.setupTechnicalDefaults(this.deps)),
-    IO.flatMap(() => this.deps.setupBusinessAdContext),
-  );
+  constructor(readonly deps: FwAdRequestMachineDeps) {
+    deps.logger.info(`[MachineInstance] created, FreeWheel SDK version ${deps.SDK.version}`)();
+  }
 
   // Public API
 
   public readonly requestAds: T.Task<ReadonlyArray<FwAdSlot.AdSlot>> = pipe(
     T.Do,
     T.tapIO(() => this.deps.logger.info("[MachineInstance] requestAds: submitting AD request")),
-    T.flatMap(() => T.fromIO(this.setupAdContext)),
+    T.flatMap(() =>
+      T.fromIO(
+        pipe(
+          this.deps.logger.info("[MachineInstance] requestAds: configuring AD context"),
+          IO.flatMap(() => FwAdRequest.setupTechnicalDefaults(this.deps)),
+          IO.flatMap(() => this.deps.setupBusinessAdContext),
+        ),
+      ),
+    ),
     T.flatMap(() => FwAdRequest.submit(this.deps)),
+    T.tapIO((slots) => this.stateful.setState(Transitions.applySlots(this.deps.SDK)(slots))),
   );
 
   // Questa viene usata in caso si voglia eseguire una nuova richiesta AD prima di aver terminato gli slots
@@ -81,6 +63,6 @@ export class FwAdRequestMachineInstance implements FwAdRequestMachine {
   public readonly resume: IO.IO<void> = pipe(IO.of(undefined));
 
   // Debug Utils
-  public readonly getState: IO.IO<MachineState> = this.stateful.getState;
-  public declare readonly onStateChange: (callback: (state: MachineState) => void) => IO.IO<void>; //TODO
+  public readonly getState: IO.IO<State> = this.stateful.getState;
+  public declare readonly onStateChange: (callback: (state: State) => void) => IO.IO<void>; //TODO
 }

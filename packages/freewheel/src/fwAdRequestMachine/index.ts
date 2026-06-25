@@ -2,19 +2,22 @@ import type { Logger } from "@hyoga-fp/core";
 import type * as IO from "fp-ts/IO";
 import type * as T from "fp-ts/Task";
 import type { FwAdContext, FwAdRequestPlayerAdapter, FwAdSlot, FwSdk } from "..";
-import type { CurrentTimeEvent } from "./controllers/contentCurrentTime";
-import type { CoreEvent, CoreHandlers } from "./events";
-import type { MachineState, Phase, Stateful } from "./state";
+//import type { CurrentTimeEvent } from "./controllers/contentCurrentTime";
+import type { CoreEvent } from "./events";
+import type { ContentEvents } from "./interrupts/onContent";
+import type { SlotEnded } from "./interrupts/onSlotEnded";
+import type { SlotStarted } from "./interrupts/onSlotStarted";
+import type { Phase, State, Stateful } from "./state";
 
-export { FwAdRequestMachineInstance } from "./instance";
-export type { MachinePhase, MachineState } from "./state";
+export { Instance } from "./instance";
+export type { Phase, State } from "./state";
 
 // FwAdRequestPlayer è la machine-interper  per effettuare una richiesta di ADs a FreeWheel e mostrarla su schermo.
 // Il ciclo di vita di questo oggetto termina quando tutti gli slots sono stati mostrati,
 // quindi l'oggetto viene disposed quasi intantamente in caso l'AD Server ritorna 0 fwADSlot
 
 export interface FwAdRequestMachine {
-  readonly mediaEventListeners: CoreHandlers;
+  //readonly coreHandlers: CoreHandlers;
   readonly stateful: Stateful;
 
   // --------------------------------------------------------------------------
@@ -38,11 +41,31 @@ export interface FwAdRequestMachine {
   readonly earlyDispose: IO.IO<void>;
 
   // Observability
-  readonly getState: IO.IO<MachineState>;
-  readonly onStateChange: (callback: (state: MachineState) => void) => IO.IO<void>;
+  readonly getState: IO.IO<State>;
+  readonly onStateChange: (callback: (state: State) => void) => IO.IO<void>;
 }
 
-export type EmitEventFn = (event: Phase | CoreEvent | CurrentTimeEvent | FwSdk.Event) => void;
+export type EmitEventFn = (
+  event:
+    | Phase
+    | CoreEvent
+    // | SlotStarted
+    | SlotEnded
+    //| CurrentTimeEvent
+    | FwSdk.Event,
+) => void;
+
+// biome-ignore format: off
+export type Emitter = (
+  event:
+    | Phase
+    | CoreEvent
+    | SlotStarted
+    | SlotEnded
+    //| CurrentTimeEvent
+    | ContentEvents
+    | FwSdk.Event,
+) => IO.IO<void>;
 
 // Dipendenze necessarie per istanziare la macchina
 export interface FwAdRequestMachineDeps {
@@ -52,7 +75,8 @@ export interface FwAdRequestMachineDeps {
   readonly getVideoAdapter: IO.IO<FwAdRequestPlayerAdapter.Adapter>;
   readonly setupBusinessAdContext: IO.IO<void>;
   readonly emit: EmitEventFn;
-  readonly emitStateChange: (state: MachineState) => void;
+  readonly emitIO: Emitter;
+  readonly emitStateChange: (state: State) => void;
 }
 
 /// TODO

@@ -31,11 +31,11 @@ export interface Config {
 export const createPlayerFrom =
   (config: Config) =>
   (deps: Omit<ContextRunnerDeps, "setupBusinessAdContext" | "adContext">): ContextRunner => {
-    const adContext = FwAdManager.createAndConfigure(deps.SDK)(config.networkId, config.serverURL)();
+    const adContext = FwAdManager.createWithConfig(deps.SDK)(config.networkId, config.serverURL)();
 
     return createContextRunner({
       ...deps,
       adContext,
-      setupBusinessAdContext: FwAdRequest.setupBusinessDefaults({ SDK: deps.SDK, adContext })(config),
+      setupBusinessAdContext: FwAdRequest.setupBusinessAdContext({ SDK: deps.SDK, adContext })(config),
     });
   };
