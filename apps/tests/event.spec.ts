@@ -2,89 +2,68 @@ import { expect, test } from "@playwright/test";
 
 declare global {
   interface Window {
-    __onPlaywrightStateInit: Promise<void>;
-    __onPlaywrightStatePreroll: Promise<void>;
-    __onPlaywrightStateContent: Promise<void>;
-    __onPlaywrightStateMidroll: Promise<void>;
-    __onPlaywrightStatePauseMidroll: Promise<void>;
-    __onPlaywrightStatePostroll: Promise<void>;
-    __onPlaywrightStateDone: Promise<void>;
-  }
-
-  interface CustomEventMap {
-    "playwright.state.Init": CustomEvent<void>;
-    "playwright.state.Preroll": CustomEvent<void>;
-    "playwright.state.Content": CustomEvent<void>;
-    "playwright.state.Midroll": CustomEvent<void>;
-    "playwright.state.PauseMidroll": CustomEvent<void>;
-    "playwright.state.Postroll": CustomEvent<void>;
-    "playwright.state.Done": CustomEvent<void>;
+    __playwrightStates: Record<string, boolean>;
   }
 }
 
-const transitionDuration = 5000; // milliseconds
+const transitionDuration = 5_000;
 
-const videoDuration = 60 * 1000;
-const prerollDuration = 30 * 1000; // seconds
-const midrollDuration = 30 * 1000; // seconds
-const postRollDuration = 40 * 1000; // seconds
+const videoDuration = 60_000;
+const prerollDuration = 30_000;
+const midrollDuration = 30_000;
+const postrollDuration = 40_000;
 
-const completeDuration = prerollDuration + midrollDuration + postRollDuration + videoDuration;
+const completeDuration = prerollDuration + midrollDuration + postrollDuration + videoDuration;
+
+const states = ["Init", "Preroll", "Content", "Midroll", "PauseMidroll", "Postroll", "Done"] as const;
 
 test("video completes", async ({ page }) => {
   test.setTimeout(completeDuration);
 
-  await page.addInitScript(() => {
-    Object.defineProperty(navigator, "webdriver", { get: () => false });
-  });
+  // Utile per vedere i console.log della pagina durante il debug
+  page.on("console", console.log);
+
+  await page.addInitScript((states: readonly string[]) => {
+    Object.defineProperty(navigator, "webdriver", {
+      get: () => false,
+    });
+
+    (window as any).__playwrightStates = {};
+
+    for (const state of states) {
+      window.addEventListener(
+        `playwright.state.${state}`,
+        () => {
+          console.log(`received ${state}`);
+          (window as any).__playwrightStates[state] = true;
+        },
+        { once: true },
+      );
+    }
+  }, states);
 
   await page.goto("http://localhost:5173");
 
-  await page.evaluate(() => {
-    window.__onPlaywrightStateInit = new Promise((resolve) =>
-      window.addEventListener("playwright.state.Init", () => resolve(), { once: true }),
-    );
-    window.__onPlaywrightStatePreroll = new Promise((resolve) =>
-      window.addEventListener("playwright.state.Preroll", () => resolve(), { once: true }),
-    );
-    window.__onPlaywrightStateContent = new Promise((resolve) =>
-      window.addEventListener("playwright.state.Content", () => resolve(), { once: true }),
-    );
-    window.__onPlaywrightStateMidroll = new Promise((resolve) =>
-      window.addEventListener("playwright.state.Midroll", () => resolve(), { once: true }),
-    );
-    window.__onPlaywrightStatePauseMidroll = new Promise((resolve) =>
-      window.addEventListener("playwright.state.PauseMidroll", () => resolve(), { once: true }),
-    );
-    window.__onPlaywrightStatePostroll = new Promise((resolve) =>
-      window.addEventListener("playwright.state.Postroll", () => resolve(), { once: true }),
-    );
-    window.__onPlaywrightStateDone = new Promise((resolve) =>
-      window.addEventListener("playwright.state.Done", () => resolve(), { once: true }),
-    );
-  });
-
-  // find button with "Play" text and click it
   await page.getByRole("button", { name: "Play" }).click();
 
-  // Wait for all the state transitions to complete
-  await expect(page.evaluate(() => window.__onPlaywrightStateInit)).resolves.toBeTruthy();
+  await page.waitForFunction(() => window.__playwrightStates.Init);
+
+  await page.waitForFunction(() => window.__playwrightStates.Preroll);
   await page.waitForTimeout(transitionDuration);
 
-  await expect(page.evaluate(() => window.__onPlaywrightStatePreroll)).resolves.toBeTruthy();
-  await page.waitForTimeout(transitionDuration);
-
-  await expect(page.evaluate(() => window.__onPlaywrightStateContent)).resolves.toBeTruthy();
+  await page.waitForFunction(() => window.__playwrightStates.Content);
   await page.waitForTimeout(prerollDuration + transitionDuration);
 
-  await expect(page.evaluate(() => window.__onPlaywrightStateMidroll)).resolves.toBeTruthy();
+  await page.waitForFunction(() => window.__playwrightStates.Midroll);
   await page.waitForTimeout(midrollDuration + transitionDuration);
 
-  await expect(page.evaluate(() => window.__onPlaywrightStatePostroll)).resolves.toBeTruthy();
-  await page.waitForTimeout(postRollDuration + transitionDuration);
+  await page.waitForFunction(() => window.__playwrightStates.Postroll);
+  await page.waitForTimeout(postrollDuration + transitionDuration);
 
-  await expect(page.evaluate(() => window.__onPlaywrightStatePauseMidroll)).resolves.toBeTruthy();
+  await page.waitForFunction(() => window.__playwrightStates.PauseMidroll);
   await page.waitForTimeout(midrollDuration + transitionDuration);
 
-  await expect(page.evaluate(() => window.__onPlaywrightStateDone)).resolves.toBeTruthy();
+  await page.waitForFunction(() => window.__playwrightStates.Done);
+
+  await expect(page.evaluate(() => window.__playwrightStates.Done)).resolves.toBe(true);
 });
