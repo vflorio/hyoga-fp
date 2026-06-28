@@ -69,6 +69,7 @@ export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: I
             ),
           ),
           IO.flatMap(() => logger.debug("[RequestOps] requestAds: state updated, starting preroll chain")),
+          IO.flatMap((slots) => () => window.dispatchEvent(new CustomEvent("adSlotsUpdated", { detail: slots }))),
           IO.flatMap(() => playPreroll),
         ),
       ),

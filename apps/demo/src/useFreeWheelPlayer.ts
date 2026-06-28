@@ -69,6 +69,20 @@ export const useFreeWheelPlayer = () => {
     [videoElement],
   );
 
+  // TODO: usePlaygright use events
+  const lastState = useRef<ContextRunner.PlayerState | null>(null);
+  useEffect(() => {
+    if (!runnerState) return;
+    if (runnerState.phase._tag !== lastState.current?.phase._tag) {
+      window.dispatchEvent(
+        new CustomEvent(`playwright.state.${runnerState.phase._tag}`, {
+          detail: runnerState,
+        }),
+      );
+    }
+    lastState.current = runnerState;
+  }, [runnerState]);
+
   async function listen() {
     for await (const event of eventStream.current) {
       match(event)
