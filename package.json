@@ -32,8 +32,8 @@
     "syncpack:fix": "syncpack fix-mismatches",
     "syncpack:format": "syncpack format",
     "syncpack:list": "syncpack list",
-    "test:full-pod": "playwright test apps/tests --headed",
-    "test": "turbo run test"
+    "test:e2e": "playwright test apps/tests --headed --ui",
+    "test:unit": "turbo run test"
   },
   "type": "module"
 }

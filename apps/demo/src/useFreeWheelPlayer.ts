@@ -65,6 +65,11 @@ export const useFreeWheelPlayer = () => {
         videoAdapter: createVideoAdapterFrom(videoElement),
         emit: eventStream.current.broadcast,
         emitStateChange: setRunnerState,
+        emitAdsData: (data) =>
+          fetch("http://localhost:5173/playwright.adsData", {
+            method: "POST",
+            body: JSON.stringify(data),
+          }),
       }),
     [videoElement],
   );
@@ -73,13 +78,13 @@ export const useFreeWheelPlayer = () => {
   const lastState = useRef<ContextRunner.PlayerState | null>(null);
   useEffect(() => {
     if (!runnerState) return;
-    if (runnerState.phase._tag !== lastState.current?.phase._tag) {
-      window.dispatchEvent(
-        new CustomEvent(`playwright.state.${runnerState.phase._tag}`, {
-          detail: runnerState,
-        }),
-      );
-    }
+    if (runnerState.phase._tag === lastState.current?.phase._tag) return;
+
+    fetch(`http://localhost/playwright.state.${runnerState.phase._tag}`, {
+      method: "POST",
+      body: JSON.stringify(runnerState),
+    });
+
     lastState.current = runnerState;
   }, [runnerState]);
 

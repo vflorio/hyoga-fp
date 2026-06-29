@@ -27,6 +27,13 @@ export interface ContextRunnerDeps {
   readonly setupBusinessAdContext: IO.IO<void>;
   readonly emit: (event: Model.SDKEvent) => void;
   readonly emitStateChange: (state: PlayerState) => void;
+  readonly emitAdsData: (triggers: {
+    preroll: number[];
+    midroll: number[];
+    overlay: number[];
+    postroll: number[];
+    pauseMidroll: number[];
+  }) => void;
 }
 
 export interface ContextRunner {

@@ -28,6 +28,7 @@ dist-ssr
 *:Zone.Identifier
 
 AdManager.js
+.env.stage
 
 # Playwright
 /test-results/
