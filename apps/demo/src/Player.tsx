@@ -1,6 +1,7 @@
-import { AppBar, Box, Button, Link, Stack, Toolbar, Typography } from "@mui/material";
-import { useCallback, useState } from "react";
+import { Box, Button, Stack, Typography } from "@mui/material";
+import { type CSSProperties, useCallback, useState } from "react";
 import { match } from "ts-pattern";
+import { config } from "./main";
 import { useFreeWheelPlayer } from "./useFreeWheelPlayer";
 
 export type ButtonPhase = "init" | "playing" | "paused";
@@ -31,24 +32,22 @@ export function Player() {
       .exhaustive();
   }, [phase, player]);
 
+  const overlay: CSSProperties = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    zIndex: 9999,
+    maxWidth: "400px",
+    backgroundColor: "#000",
+    color: "#fff",
+    padding: "10px",
+    opacity: 0.8,
+    fontSize: "12px",
+  };
   return (
     <>
-      <pre
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          zIndex: 9999,
-          maxWidth: "400px",
-          backgroundColor: "#000",
-          color: "#fff",
-          padding: "10px",
-          opacity: 0.8,
-          fontSize: "12px",
-        }}
-      >
-        {JSON.stringify({ phase, state }, null, 2)}
-      </pre>
+      <pre style={overlay}>{JSON.stringify({ config }, null, 2)}</pre>
+      <pre style={{ ...overlay, top: 300 }}>{JSON.stringify({ phase, state }, null, 2)}</pre>
 
       <Box sx={{ m: "20px" }}>
         <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", lg: "row" } }}>
@@ -62,7 +61,7 @@ export function Player() {
                   playsInline
                   style={{ height: 480, width: "100%", backgroundColor: "#000" }}
                 >
-                  <source src="https://ott.dolby.com/OnDelKits/AC-4/Dolby_AC-4_Online_Delivery_Kit_1.5/Test_Signals/muxed_streams/MP4/Example/Audio_ID_720p_25fps_h264_2ch_64kbps_ac4.mp4" />
+                  <source src={config.videoURL} />
                 </video>
               </Box>
             </Stack>

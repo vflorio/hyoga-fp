@@ -43,12 +43,20 @@ export const createDefaultBusinessSetupAdContext =
     adContext.setParameter(SDK.PARAMETER_EXTENSION_OMSDK_ENABLED, true, SDK.PARAMETER_LEVEL_GLOBAL);
 
     adContext.setProfile(config.profileId);
+
+    // This will affect the flag parameter in the ad request. Whether the video will be played without user interactive, must be one of:
+    //  <VIDEO_ASSET_AUTO_PLAY_TYPE_NONE> - Will add -play to flag to ad request.
+    //  <VIDEO_ASSET_AUTO_PLAY_TYPE_ATTENDED> - Will ad +play-uapl to flag in ad request.
+    //  <VIDEO_ASSET_AUTO_PLAY_TYPE_UNATTENDED> - Will add +play+uapl to flag to ad request.
+    //  <VIDEO_ASSET_AUTO_PLAY_TYPE_CLICK_TO_PLAY> - Will add +cltp to flag to ad request.
+    const autoplayType = SDK.VIDEO_ASSET_AUTO_PLAY_TYPE_ATTENDED;
+
     adContext.setVideoAsset(
       config.videoAssetId,
       config.videoDuration,
       config.networkId,
       null,
-      SDK.VIDEO_ASSET_AUTO_PLAY_TYPE_ATTENDED,
+      autoplayType,
       Math.round(Math.random() * 10000),
       SDK.ID_TYPE_CUSTOM,
       "0",

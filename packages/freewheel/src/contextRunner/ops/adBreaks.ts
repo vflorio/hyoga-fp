@@ -38,6 +38,7 @@ export const createAdBreakOps = (
           (slot) =>
             pipe(
               logger.info(`[AdBreakOps] playPreroll: playing slot (${state.prerollSlots.length} remaining)`),
+              IO.flatMap(() => playback.removeVideoListeners),
               IO.flatMap(() => setState(Transitions.popPreroll(slot))),
               IO.flatMap(() => () => slot.play()),
             ),
@@ -62,6 +63,7 @@ export const createAdBreakOps = (
           (slot) =>
             pipe(
               logger.info(`[AdBreakOps] playPostroll: playing slot (${state.postrollSlots.length} remaining)`),
+              IO.flatMap(() => playback.removeVideoListeners),
               IO.flatMap(() => setState(Transitions.popPostroll(slot))),
               IO.flatMap(() => () => slot.play()),
             ),

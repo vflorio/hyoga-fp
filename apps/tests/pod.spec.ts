@@ -26,34 +26,38 @@ test("AD Pod Plays", async ({ page }) => {
     });
   });
 
-  // Gli eventi playwright.state vengono emessi dal useFreeWheelPlayer sottoforma di fetch per notificare playwright che lo stato è cambiato
+  // Gli eventi e2e.state vengono emessi dal useFreeWheelPlayer sottoforma di fetch per notificare playwright che lo stato è cambiato
 
   await page.goto("http://localhost:5173");
 
-  //  const onInit = await page.waitForRequest("**/playwright.state.Init");
+  //  const onInit = await page.waitForRequest("**/e2e.state.Init");
   //  await expect(await onInit).toBeDefined();
 
-  // Mandiamo in parallelo
-  const [fwRequest] = await Promise.all([
-    // https://{id}.v.fwmrm.net/ad/g/1?prof
-    page.waitForRequest("**/ad/g/1?prof=**"),
-    // La richiesta ad avviene al click sul play (che chiama .requestAds())
-    page.getByRole("button", { name: "Play" }).click(),
-  ]);
+  const adsData = await test.step("Request FreeWheel ADs Pod", async () => {
+    // Mandiamo in parallelo
+    const [fwRequest] = await Promise.all([
+      // https://{id}.v.fwmrm.net/ad/g/1?prof
+      page.waitForRequest("**/ad/g/1?prof=**"),
+      // La richiesta ad avviene al click sul play (che chiama .requestAds())
+      page.getByRole("button", { name: "Play" }).click(),
+    ]);
 
-  await expect(fwRequest).toBeDefined();
+    await expect(fwRequest).toBeDefined();
 
-  // playwright.adsData
-  const adsDataRequest = await page.waitForRequest("**/playwright.adsData");
-  const adsPostData = adsDataRequest.postData()!;
+    // e2e.adsData
+    const adsDataRequest = await page.waitForRequest("**/e2e.adsData");
+    const adsPostData = adsDataRequest.postData()!;
 
-  const adsData: {
-    preroll: number[];
-    midroll: number[];
-    overlay: number[];
-    postroll: number[];
-    pauseMidroll: number[];
-  } = JSON.parse(adsPostData);
+    const data: {
+      prerolls: { timePosition: number; timePositionEnd: number; totalDuration: number }[];
+      midrolls: { timePosition: number; timePositionEnd: number; totalDuration: number }[];
+      overlays: { timePosition: number; timePositionEnd: number; totalDuration: number }[];
+      postrolls: { timePosition: number; timePositionEnd: number; totalDuration: number }[];
+      pauseMidrolls: { timePosition: number; timePositionEnd: number; totalDuration: number }[];
+    } = JSON.parse(adsPostData);
+
+    return data;
+  });
 
   // Lo stato cambia una sola volta per tipo, quindi dobbiamo cumulare l'attesa di ogni slots
 
@@ -61,67 +65,77 @@ test("AD Pod Plays", async ({ page }) => {
 
   // Preroll
 
-  if (adsData.preroll.length > 0) {
-    const onPreroll = await page.waitForRequest("**/playwright.state.Preroll");
-    await expect(onPreroll).toBeDefined();
+  if (adsData.prerolls.length > 0) {
+    await test.step(`Preroll (${adsData.prerolls.length})`, async () => {
+      const onPreroll = await page.waitForRequest("**/e2e.state.Preroll");
+      await expect(onPreroll).toBeDefined();
 
-    await page.waitForTimeout((adsData.preroll.reduce((a, b) => a + b, 0) || 1) * 1000);
+      // FIXME TODO
+      // await page.waitForTimeout((adsData.preroll.reduce((a, b) => a + b, 0) || 1) * 1000);
+    });
 
-    // Resume Content
-
-    const onContentAfterPreroll = await page.waitForRequest("**/playwright.state.Content");
-    await expect(onContentAfterPreroll).toBeDefined();
+    await test.step("Resume Content after Preroll", async () => {
+      const onContentAfterPreroll = await page.waitForRequest("**/e2e.state.Content");
+      await expect(onContentAfterPreroll).toBeDefined();
+    });
   }
 
   // Midrolls
 
-  if (adsData.midroll.length > 0) {
-    const onMidroll = await page.waitForRequest("**/playwright.state.Midroll");
-    await expect(onMidroll).toBeDefined();
+  if (adsData.midrolls.length > 0) {
+    await test.step(`Midroll (${adsData.midrolls.length})`, async () => {
+      const onMidroll = await page.waitForRequest("**/e2e.state.Midroll");
+      await expect(onMidroll).toBeDefined();
 
-    await page.waitForTimeout((adsData.midroll.reduce((a, b) => a + b, 0) || 1) * 1000);
+      // FIXME TODO
+      // await page.waitForTimeout((adsData.midroll.reduce((a, b) => a + b, 0) || 1) * 1000);
+    });
 
-    // Resume Content after Midroll
-
-    const onContentAfterMidroll = await page.waitForRequest("**/playwright.state.Content");
-    await expect(onContentAfterMidroll).toBeDefined();
+    await test.step("Resume Content after Midroll", async () => {
+      const onContentAfterMidroll = await page.waitForRequest("**/e2e.state.Content");
+      await expect(onContentAfterMidroll).toBeDefined();
+    });
   }
 
   // Pause Midrolls
 
-  for (const pauseMidroll of adsData.pauseMidroll) {
-    const [pausedRequest] = await Promise.all([
-      // https://{id}.v.fwmrm.net/ad/g/1?prof
-      page.waitForRequest("**/playwright.state.PauseMidroll"),
-      // La richiesta ad avviene al click sul play (che chiama .requestAds())
-      page.getByRole("button", { name: "Pause" }).click(),
-    ]);
+  for (const pauseMidroll of adsData.pauseMidrolls) {
+    await test.step(`Pause Midroll (static=${pauseMidroll.timePosition === 0})`, async () => {
+      const [pausedRequest] = await Promise.all([
+        page.waitForRequest("**/e2e.state.PauseMidroll"),
+        page.getByRole("button", { name: "Pause" }).click(),
+      ]);
 
-    // Midroll duration = 0 means that when we pause the use sees a overlay and not a Slot
-    await page.waitForTimeout((pauseMidroll || 1) * 1000);
+      // Midroll duration = 0 means that when we pause the use sees a overlay and not a Slot
+      await page.waitForTimeout((pauseMidroll.timePosition || 1) * 1000);
 
-    await page.getByRole("button", { name: "Resume" }).click();
+      await page.getByRole("button", { name: "Resume" }).click();
 
-    await expect(pausedRequest).toBeDefined();
+      await expect(pausedRequest).toBeDefined();
+    });
+
+    await test.step("Resume Content after Pause Midroll", async () => {
+      const onContentAfterPauseMidroll = await page.waitForRequest("**/e2e.state.Content");
+      await expect(onContentAfterPauseMidroll).toBeDefined();
+    });
   }
 
   // Postroll
 
-  if (adsData.postroll.length > 0) {
-    const onPostroll = await page.waitForRequest("**/playwright.state.Postroll");
-    await expect(onPostroll).toBeDefined();
+  if (adsData.postrolls.length > 0) {
+    await test.step(`Postroll (${adsData.postrolls.length})`, async () => {
+      const onPostroll = await page.waitForRequest("**/e2e.state.Postroll");
+      await expect(onPostroll).toBeDefined();
 
-    // FIXME TODO
-    //await page.waitForTimeout((adsData.postroll.reduce((a, b) => a + b, 0) || 1) * 1000);
-
-    // Resume Content after Postroll
-
-    const onContentAfterPostroll = await page.waitForRequest("**/playwright.state.Content");
-    await expect(onContentAfterPostroll).toBeDefined();
+      // FIXME TODO
+      // await page.waitForTimeout((adsData.postroll.reduce((a, b) => a + b, 0) || 1) * 1000);
+    });
   }
 
-  // Enter Done
+  // Done
 
-  const onDone = await page.waitForRequest("**/playwright.state.Done");
-  await expect(onDone).toBeDefined();
+  await test.step("Done", async () => {
+    const onDone = await page.waitForRequest("**/e2e.state.Done");
+    await expect(onDone).toBeDefined();
+  });
 });

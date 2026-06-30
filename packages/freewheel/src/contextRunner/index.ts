@@ -28,11 +28,11 @@ export interface ContextRunnerDeps {
   readonly emit: (event: Model.SDKEvent) => void;
   readonly emitStateChange: (state: PlayerState) => void;
   readonly emitAdsData: (triggers: {
-    preroll: number[];
-    midroll: number[];
-    overlay: number[];
-    postroll: number[];
-    pauseMidroll: number[];
+    prerolls: { timePosition: number; timePositionEnd: number; totalDuration: number }[];
+    midrolls: { timePosition: number; timePositionEnd: number; totalDuration: number }[];
+    overlays: { timePosition: number; timePositionEnd: number; totalDuration: number }[];
+    postrolls: { timePosition: number; timePositionEnd: number; totalDuration: number }[];
+    pauseMidrolls: { timePosition: number; timePositionEnd: number; totalDuration: number }[];
   }) => void;
 }
 

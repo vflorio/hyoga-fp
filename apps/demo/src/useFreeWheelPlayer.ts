@@ -65,11 +65,12 @@ export const useFreeWheelPlayer = () => {
         videoAdapter: createVideoAdapterFrom(videoElement),
         emit: eventStream.current.broadcast,
         emitStateChange: setRunnerState,
-        emitAdsData: (data) =>
-          fetch("http://localhost:5173/playwright.adsData", {
+        emitAdsData: (data) => {
+          fetch("http://localhost/e2e.adsData", {
             method: "POST",
             body: JSON.stringify(data),
-          }),
+          });
+        },
       }),
     [videoElement],
   );
@@ -80,7 +81,7 @@ export const useFreeWheelPlayer = () => {
     if (!runnerState) return;
     if (runnerState.phase._tag === lastState.current?.phase._tag) return;
 
-    fetch(`http://localhost/playwright.state.${runnerState.phase._tag}`, {
+    fetch(`http://localhost/e2e.state.${runnerState.phase._tag}`, {
       method: "POST",
       body: JSON.stringify(runnerState),
     });

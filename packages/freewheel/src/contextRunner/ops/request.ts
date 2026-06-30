@@ -32,17 +32,22 @@ export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: I
     ),
   );
 
-  const getSlotTriggers = (slots: readonly FreeWheel.AdSlot[]): number[] => slots.map((slot) => slot.getTimePosition());
+  const getSlotTriggers = (slots: readonly FreeWheel.AdSlot[]) =>
+    slots.map((slot) => ({
+      timePosition: slot.getTimePosition(),
+      timePositionEnd: slot.getEndTimePosition(),
+      totalDuration: slot.getTotalDuration(),
+    }));
 
   const getSlotsByTrigger = (trigger: string) => (slots: readonly FreeWheel.AdSlot[]) =>
     slots.filter((s) => s.getTimePositionClass() === trigger);
 
   const getSlotsTriggers = (slots: readonly FreeWheel.AdSlot[]) => ({
-    preroll: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_PREROLL), getSlotTriggers),
-    midroll: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_MIDROLL), getSlotTriggers),
-    overlay: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_OVERLAY), getSlotTriggers),
-    postroll: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_POSTROLL), getSlotTriggers),
-    pauseMidroll: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL), getSlotTriggers),
+    prerolls: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_PREROLL), getSlotTriggers),
+    midrolls: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_MIDROLL), getSlotTriggers),
+    overlays: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_OVERLAY), getSlotTriggers),
+    postrolls: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_POSTROLL), getSlotTriggers),
+    pauseMidrolls: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL), getSlotTriggers),
   });
 
   const requestAds: T.Task<void> = pipe(
