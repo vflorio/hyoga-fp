@@ -35,7 +35,7 @@ export function Player() {
   const overlay: CSSProperties = {
     position: "fixed",
     top: 0,
-    left: 0,
+    right: 0,
     zIndex: 9999,
     maxWidth: "400px",
     backgroundColor: "#000",
@@ -66,9 +66,16 @@ export function Player() {
               </Box>
             </Stack>
 
-            <Button variant="contained" color="info" fullWidth onClick={handleClick}>
-              {phase === "init" ? "Play" : phase === "playing" ? "Pause" : "Resume"}
-            </Button>
+            <Stack gap={1} direction="row" sx={{ mt: "20px", "& .MuiButton-root": { maxWidth: 200 } }}>
+              <Button variant="contained" color="info" fullWidth onClick={handleClick}>
+                {phase === "init" ? "Play" : phase === "playing" ? "Pause" : "Resume"}
+              </Button>
+              {player && (
+                <Button variant="contained" color="info" fullWidth onClick={player.dispose}>
+                  Dispose
+                </Button>
+              )}
+            </Stack>
 
             <Box sx={{ mt: "20px" }} id="standaloneContainer">
               <Typography>Standalone 728x90</Typography>

@@ -66,7 +66,7 @@ test("AD Pod Plays", async ({ page }) => {
   // Preroll
 
   if (adsData.prerolls.length > 0) {
-    await test.step(`Preroll (${adsData.prerolls.length})`, async () => {
+    await test.step(`Enter Phase -> Preroll (${adsData.prerolls.length})`, async () => {
       const onPreroll = await page.waitForRequest("**/e2e.state.Preroll");
       await expect(onPreroll).toBeDefined();
 
@@ -74,7 +74,7 @@ test("AD Pod Plays", async ({ page }) => {
       // await page.waitForTimeout((adsData.preroll.reduce((a, b) => a + b, 0) || 1) * 1000);
     });
 
-    await test.step("Resume Content after Preroll", async () => {
+    await test.step("Resume Phase -> Content (after Preroll)", async () => {
       const onContentAfterPreroll = await page.waitForRequest("**/e2e.state.Content");
       await expect(onContentAfterPreroll).toBeDefined();
     });
@@ -83,7 +83,7 @@ test("AD Pod Plays", async ({ page }) => {
   // Midrolls
 
   if (adsData.midrolls.length > 0) {
-    await test.step(`Midroll (${adsData.midrolls.length})`, async () => {
+    await test.step(`Enter Phase -> Midroll (${adsData.midrolls.length})`, async () => {
       const onMidroll = await page.waitForRequest("**/e2e.state.Midroll");
       await expect(onMidroll).toBeDefined();
 
@@ -91,7 +91,7 @@ test("AD Pod Plays", async ({ page }) => {
       // await page.waitForTimeout((adsData.midroll.reduce((a, b) => a + b, 0) || 1) * 1000);
     });
 
-    await test.step("Resume Content after Midroll", async () => {
+    await test.step("Resume Phase -> Content (after Midroll)", async () => {
       const onContentAfterMidroll = await page.waitForRequest("**/e2e.state.Content");
       await expect(onContentAfterMidroll).toBeDefined();
     });
@@ -100,7 +100,7 @@ test("AD Pod Plays", async ({ page }) => {
   // Pause Midrolls
 
   for (const pauseMidroll of adsData.pauseMidrolls) {
-    await test.step(`Pause Midroll (static=${pauseMidroll.timePosition === 0})`, async () => {
+    await test.step(`Enter Phase -> PauseMidroll (static=${pauseMidroll.timePosition === 0})`, async () => {
       const [pausedRequest] = await Promise.all([
         page.waitForRequest("**/e2e.state.PauseMidroll"),
         page.getByRole("button", { name: "Pause" }).click(),
@@ -114,7 +114,7 @@ test("AD Pod Plays", async ({ page }) => {
       await expect(pausedRequest).toBeDefined();
     });
 
-    await test.step("Resume Content after Pause Midroll", async () => {
+    await test.step("Resume Phase -> Content (after PauseMidroll)", async () => {
       const onContentAfterPauseMidroll = await page.waitForRequest("**/e2e.state.Content");
       await expect(onContentAfterPauseMidroll).toBeDefined();
     });
@@ -123,7 +123,7 @@ test("AD Pod Plays", async ({ page }) => {
   // Postroll
 
   if (adsData.postrolls.length > 0) {
-    await test.step(`Postroll (${adsData.postrolls.length})`, async () => {
+    await test.step(`Enter Phase -> Postroll (${adsData.postrolls.length})`, async () => {
       const onPostroll = await page.waitForRequest("**/e2e.state.Postroll");
       await expect(onPostroll).toBeDefined();
 
@@ -133,9 +133,9 @@ test("AD Pod Plays", async ({ page }) => {
   }
 
   // Done
-
-  await test.step("Done", async () => {
-    const onDone = await page.waitForRequest("**/e2e.state.Done");
-    await expect(onDone).toBeDefined();
-  });
+  // TODO FIXME: Questo va spostato in uno scenario di test del dispose (client-side routing, dialog close, app reloads, etc)
+  // await test.step("Done", async () => {
+  //   const onDone = await page.waitForRequest("**/e2e.state.Done");
+  //   await expect(onDone).toBeDefined();
+  // });
 });

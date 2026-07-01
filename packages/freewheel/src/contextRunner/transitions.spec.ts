@@ -17,6 +17,8 @@ import {
 const mockSlot = (timePositionClass: string, timePosition = 0): AdSlot => ({
   getTimePositionClass: () => timePositionClass,
   getTimePosition: () => timePosition,
+  getEndTimePosition: () => timePosition + 5,
+  getTotalDuration: () => 5,
   getAdCount: () => 1,
   play: () => {},
   pause: () => {},

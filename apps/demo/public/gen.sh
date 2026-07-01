@@ -1,1 +1,1 @@
-ffmpeg -f lavfi -i smptebars -t 120 smpte.mp4
+ffmpeg -f lavfi -i smptebars -t 60 smpte.mp4
