@@ -17,7 +17,11 @@ export interface AdBreakOps {
   readonly onContentResumeRequest: () => void;
 }
 
-export const createAdBreakOps = (context: ContextRunnerOpContext, playback: PlaybackOps): AdBreakOps => {
+export const createAdBreakOps = (
+  context: ContextRunnerOpContext,
+  playback: PlaybackOps,
+  dispose: IO.IO<void>,
+): AdBreakOps => {
   const { getState, setState, adContext, SDK, logger, emit } = context;
 
   const playPreroll: IO.IO<void> = pipe(
@@ -34,6 +38,7 @@ export const createAdBreakOps = (context: ContextRunnerOpContext, playback: Play
           (slot) =>
             pipe(
               logger.info(`[AdBreakOps] playPreroll: playing slot (${state.prerollSlots.length} remaining)`),
+              IO.flatMap(() => playback.removeVideoListeners),
               IO.flatMap(() => setState(Transitions.popPreroll(slot))),
               IO.flatMap(() => () => slot.play()),
             ),
@@ -48,10 +53,17 @@ export const createAdBreakOps = (context: ContextRunnerOpContext, playback: Play
       pipe(
         RA.head(state.postrollSlots),
         O.match(
-          () => pipe(logger.debug("[AdBreakOps] playPostroll: no postrolls remaining"), IO.asUnit),
+          () =>
+            pipe(
+              logger.debug("[AdBreakOps] playPostroll: no postrolls remaining, disposing Ad Context"),
+              // End case: 1) We received only prerolls, so after they are consumed,
+              // we have nothing more to do with FW SDK AD Manager Context
+              IO.flatMap(() => dispose),
+            ),
           (slot) =>
             pipe(
               logger.info(`[AdBreakOps] playPostroll: playing slot (${state.postrollSlots.length} remaining)`),
+              IO.flatMap(() => playback.removeVideoListeners),
               IO.flatMap(() => setState(Transitions.popPostroll(slot))),
               IO.flatMap(() => () => slot.play()),
             ),

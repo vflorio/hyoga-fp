@@ -1,6 +1,7 @@
-import { AppBar, Box, Button, Link, Stack, Toolbar, Typography } from "@mui/material";
-import { useCallback, useState } from "react";
+import { Box, Button, Stack, Typography } from "@mui/material";
+import { type CSSProperties, useCallback, useState } from "react";
 import { match } from "ts-pattern";
+import { config } from "./main";
 import { useFreeWheelPlayer } from "./useFreeWheelPlayer";
 
 export type ButtonPhase = "init" | "playing" | "paused";
@@ -31,16 +32,22 @@ export function Player() {
       .exhaustive();
   }, [phase, player]);
 
+  const overlay: CSSProperties = {
+    position: "fixed",
+    top: 0,
+    right: 0,
+    zIndex: 9999,
+    maxWidth: "400px",
+    backgroundColor: "#000",
+    color: "#fff",
+    padding: "10px",
+    opacity: 0.8,
+    fontSize: "12px",
+  };
   return (
     <>
-      <AppBar position="static" color="default" elevation={1}>
-        <Toolbar>
-          <img alt="Brand" src="https://vi.freewheel.tv/static/images/ee_logo.png" style={{ marginLeft: "auto" }} />
-          <Typography variant="h5" fontWeight={300} sx={{ color: "#40748c", ml: 1, mr: "auto" }}>
-            FreeWheel HTML5 Demo Player
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <pre style={overlay}>{JSON.stringify({ config }, null, 2)}</pre>
+      <pre style={{ ...overlay, top: 300 }}>{JSON.stringify({ phase, state }, null, 2)}</pre>
 
       <Box sx={{ m: "20px" }}>
         <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", lg: "row" } }}>
@@ -54,24 +61,21 @@ export function Player() {
                   playsInline
                   style={{ height: 480, width: "100%", backgroundColor: "#000" }}
                 >
-                  <source src="https://ott.dolby.com/OnDelKits/AC-4/Dolby_AC-4_Online_Delivery_Kit_1.5/Test_Signals/muxed_streams/MP4/Example/Audio_ID_720p_25fps_h264_2ch_64kbps_ac4.mp4" />
+                  <source src={config.videoURL} />
                 </video>
               </Box>
-              <pre style={{ maxWidth: "400px" }}>
-                {JSON.stringify(
-                  {
-                    phase,
-                    state,
-                  },
-                  null,
-                  2,
-                )}
-              </pre>
             </Stack>
 
-            <Button variant="contained" color="info" fullWidth onClick={handleClick}>
-              {phase === "init" ? "Play" : phase === "playing" ? "Pause" : "Resume"}
-            </Button>
+            <Stack gap={1} direction="row" sx={{ mt: "20px", "& .MuiButton-root": { maxWidth: 200 } }}>
+              <Button variant="contained" color="info" fullWidth onClick={handleClick}>
+                {phase === "init" ? "Play" : phase === "playing" ? "Pause" : "Resume"}
+              </Button>
+              {player && (
+                <Button variant="contained" color="info" fullWidth onClick={player.dispose}>
+                  Dispose
+                </Button>
+              )}
+            </Stack>
 
             <Box sx={{ mt: "20px" }} id="standaloneContainer">
               <Typography>Standalone 728x90</Typography>
@@ -92,7 +96,6 @@ export function Player() {
           {/* Right panel */}
           <Box sx={{ flex: 1 }} id="companionContainer">
             <Typography>Companion 300x250</Typography>
-
             <span id="companionSlot" className="_fwph">
               <form id="_fw_form_companionSlot" style={{ display: "none" }}>
                 <input
@@ -106,20 +109,6 @@ export function Player() {
             </span>
           </Box>
         </Box>
-      </Box>
-
-      <Box component="footer" sx={{ p: "10px", textAlign: "right" }}>
-        <Typography component="span" sx={{ fontSize: "small", color: "#ccc" }}>
-          © {new Date().getFullYear()}
-        </Typography>{" "}
-        <Link
-          href="https://freewheel.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          sx={{ fontSize: "small", color: "#ccc" }}
-        >
-          FreeWheel Media Inc.
-        </Link>
       </Box>
     </>
   );

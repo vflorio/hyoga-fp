@@ -54,9 +54,11 @@ export const createPlaybackOps = (
         IO.flatMap(() => () => midroll.value.play()),
       );
 
+    // End case: 1) We received only prerolls, so after they are consumed,
+    // we have nothing more to do with FW SDK AD Manager Context
     const onNoSlotsRemaining = () =>
       pipe(
-        logger.debug("[PlaybackOps] onContentTimeUpdate: no timed slots remaining, removing timeupdate listener"),
+        logger.debug("[PlaybackOps] onContentTimeUpdate: no timed slots remaining, disposing Ad Context"),
         IO.flatMap(() => removeVideoListeners),
         IO.flatMap(() => dispose),
       );

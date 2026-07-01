@@ -46,6 +46,7 @@ const EnvCodec = t.type({
     error: null,
     silent: null,
   }),
+  VITE_VIDEO_URL: t.string,
 });
 
 // --- Parse and export ---
@@ -77,6 +78,7 @@ export const config = pipe(
       fallbackSiteId: env.VITE_FW_FALLBACK_SITE_ID,
       videoContainer: env.VITE_FW_VIDEO_CONTAINER,
       disableAutoPause: env.VITE_FW_DISABLE_AUTO_PAUSE,
+      videoURL: env.VITE_VIDEO_URL,
       logLevel: env.VITE_HYOGA_LOG_LEVEL,
     }),
   ),

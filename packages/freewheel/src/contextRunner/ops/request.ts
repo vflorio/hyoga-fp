@@ -10,7 +10,7 @@ export interface RequestOps {
 }
 
 export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: IO.IO<void>): RequestOps => {
-  const { setState, adContext, SDK, logger } = context;
+  const { setState, adContext, SDK, logger, emitAdsData } = context;
 
   const submitAdRequest: T.Task<ReadonlyArray<FreeWheel.AdSlot>> = () =>
     new Promise((resolve) => {
@@ -32,6 +32,24 @@ export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: I
     ),
   );
 
+  const getSlotTriggers = (slots: readonly FreeWheel.AdSlot[]) =>
+    slots.map((slot) => ({
+      timePosition: slot.getTimePosition(),
+      timePositionEnd: slot.getEndTimePosition(),
+      totalDuration: slot.getTotalDuration(),
+    }));
+
+  const getSlotsByTrigger = (trigger: string) => (slots: readonly FreeWheel.AdSlot[]) =>
+    slots.filter((s) => s.getTimePositionClass() === trigger);
+
+  const getSlotsTriggers = (slots: readonly FreeWheel.AdSlot[]) => ({
+    prerolls: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_PREROLL), getSlotTriggers),
+    midrolls: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_MIDROLL), getSlotTriggers),
+    overlays: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_OVERLAY), getSlotTriggers),
+    postrolls: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_POSTROLL), getSlotTriggers),
+    pauseMidrolls: pipe(slots, getSlotsByTrigger(SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL), getSlotTriggers),
+  });
+
   const requestAds: T.Task<void> = pipe(
     T.fromIO(
       pipe(
@@ -47,15 +65,13 @@ export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: I
       T.fromIO(
         pipe(
           logger.info(`[RequestOps] requestAds: received ${slots.length} slots`, { slots }),
+          IO.flatMap(() => logger.debug("[RequestOps] requestAds: slot breakdown")),
           IO.flatMap(() =>
-            logger.debug("[RequestOps] requestAds: slot breakdown", {
-              preroll: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_PREROLL).length,
-              midroll: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_MIDROLL).length,
-              overlay: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_OVERLAY).length,
-              postroll: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_POSTROLL).length,
-              pauseMidroll: slots.filter((s) => s.getTimePositionClass() === SDK.TIME_POSITION_CLASS_PAUSE_MIDROLL)
-                .length,
-            }),
+            pipe(
+              IO.of(getSlotsTriggers(slots)),
+              IO.tap((triggers) => logger.debug("[RequestOps] requestAds: slot triggers", triggers)),
+              IO.tap((triggers) => () => emitAdsData(triggers)),
+            ),
           ),
           IO.flatMap(() =>
             setState(
@@ -69,6 +85,7 @@ export const createRequestOps = (context: ContextRunnerOpContext, playPreroll: I
             ),
           ),
           IO.flatMap(() => logger.debug("[RequestOps] requestAds: state updated, starting preroll chain")),
+          IO.flatMap((slots) => () => window.dispatchEvent(new CustomEvent("adSlotsUpdated", { detail: slots }))),
           IO.flatMap(() => playPreroll),
         ),
       ),

@@ -1,6 +1,8 @@
 export interface AdSlot {
   getTimePositionClass(): string;
   getTimePosition(): number;
+  getEndTimePosition(): number;
+  getTotalDuration(): number;
   getAdCount(): number;
   play(): void;
   pause(): void;

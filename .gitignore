@@ -28,3 +28,11 @@ dist-ssr
 *:Zone.Identifier
 
 AdManager.js
+.env.stage
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
